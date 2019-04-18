@@ -48,9 +48,9 @@
 
  Mesh multiplier   CPU seconds
                 --- Number of modes =           10
-        1            0.330E-03s
+        1            0.305E-03s
                 --- Number of modes =           10
-        2            0.135E-03s
+        2            0.136E-03s
 
     I    k (1/m)            alpha (1/m)   Phase Speed (m/s) Group Speed (m/s)
     1  0.2077963428     -0.3500546852E-04   1511.861379       1491.984974    
