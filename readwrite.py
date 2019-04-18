@@ -370,3 +370,104 @@ def read_shd ( *varargin ):
     # PlotTitle = [ PlotTitle( nchars( 1 ) + 1 : nchars( 2 ) - 1 ) ]
 
     return [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] 
+
+
+def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, *varargin ):
+
+    if (envfil == 'ENVFIL')  and (envfil[-4:] != '.env' ):
+        envfil = envfil + '.env' # append extension
+
+    if ( len( varargin ) == 0 ):
+        f = open( envfil, 'w' ) # create new env file
+    else:
+        f = open( envfil, 'a' )   # append to existing envfil
+
+
+    model =  model.upper()   # convert to uppercase
+
+
+    f.write('\'' + TitleEnv + '\' ! Title \r\n')
+    f.write('{:8.2f}'.format(freq) +' \t \t \t ! Frequency (Hz) \r\n')
+    f.write('{:5d}'.format(SSP.NMedia)+ ' \t \t \t ! NMedia \r\n')
+    f.write('\'' + Bdry.Top.Opt + '\''+ ' \t \t \t ! Top Option \r\n')
+
+    if ( Bdry.Top.Opt[0] == 'A' ): # analytic boundary
+        f.write('     {:6.2f}'.format(ssp.depth[0]) + \
+                    ' {:6.2f}'.format(bdry.Top.hs.alphaR) + \
+                    ' {:6.2f}'.format(bdry.Top.hs.betaR) + \
+                    ' {:6.2g}'.format(bdry.Top.hs.rho) + \
+                    ' {:6.2f}'.format(bdry.Top.hs.alphaI) + \
+                    ' {:6.2f}'.format(bdry.Top.hs.betaI) + \
+                    '  \t ! upper halfspace \r\n')
+
+
+    # SSP
+    for medium in range(SSP.NMedia):
+        f.write('{:5d}'.format(SSP.N[ medium ]) + \
+                ' {:4.2f}'.format(SSP.sigma[ medium ]) + \
+                ' {:6.2f}'.format(SSP.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
+        for ii in range(len( SSP.raw[ medium].z )):
+            f.write('\t {:6.2f} '.format(SSP.raw[ medium ].z[ ii ]) + \
+                '{:6.2f} '.format(SSP.raw[ medium ].alphaR[ ii ]) + \
+                '{:6.2f} '.format(SSP.raw[ medium ].betaR[ ii ]) + \
+                '{:6.2g}'.format(SSP.raw[ medium ].rho[ ii ] ) +  \
+                ' {:10.6f} '.format(SSP.raw[ medium ].alphaI[ ii ]) + \
+                '{:6.2f} '.format(SSP.raw[ medium ].betaI[ ii ]) + \
+                '/ \t ! z c cs rho \r\n')
+
+    # lower halfspace
+    f.write('\''+Bdry.Bot.Opt + '\'' + ' {:6.2f}'.format(SSP.sigma[1]) + '  \t \t ! Bottom Option, sigma\r\n') # SSP.sigma( 2 ) )
+
+    fmtr = {'float': lambda x: ' {:6.2f}\n'.format(float(x)), 'void': lambda x: ''}
+    a = np.array([])
+    d = np.array([float(SSP.depth[SSP.NMedia])])
+    vls = [d, Bdry.Bot.hs.alphaR, Bdry.Bot.hs.betaR, Bdry.Bot.hs.rho, \
+                    Bdry.Bot.hs.alphaI, Bdry.Bot.hs.betaI]
+    strings = [np.array2string(x, formatter = fmtr)[1:-1] for x in vls]
+    s = '  {:6.2f}'.format(SSP.depth[SSP.NMedia])
+    for string in strings[1:]:
+        s += string
+    if ( Bdry.Bot.Opt[0] == 'A' ):
+#        print('{:6.2f}'.format(Bdry.Bot.hs.betaI[0]))
+        f.write('  ' + s + '  \t  / \t ! lower halfspace \r\n')
+
+    if  model in  [ 'SCOOTER', 'KRAKEN', 'KRAKENC', 'SPARC' ]:
+        f.write('{:6.0f} '.format(cInt.Low) + '{:6.0f} \t \t ! cLow cHigh (m/s) \r\n'.format(cInt.High))   # phase speed limits
+        f.write('{:8.2f} \t \t \t ! RMax (km) \r\n'.format(RMax ))    # maximum range
+
+    # source depths
+
+    f.write('{:5d} \t \t \t \t ! NSD'.format(len( Pos.s.depth ) ))
+
+    if ( len( Pos.s.depth ) >= 2) and equally_spaced( Pos.s.depth ):
+        f.write('\r\n    {:6f'.format(Pos.s.depth[0]) +' {:6f '.format(Pos.depth[-1]))
+    else:
+        f.write('\r\n    {:6f}  '.format( Pos.s.depth[0] ))
+
+    f.write('/ \t ! SD(1)  ... (m) \r\n' )
+
+    # receiver depths
+
+    f.write('{:5d} \t \t \t \t ! NRD'.format(len( Pos.r.depth ) ))
+
+    if ( len( Pos.r.depth ) >= 2) and equally_spaced( Pos.r.depth ) :
+        f.write('\r\n    {:6f} '.format(Pos.r.depth[0]) + '{:6f} '.format( Pos.r.depth[-1]))
+    else:
+        f.write('\r\n    {:6f}  '.format(Pos.r.depth) )
+
+    f.write('/ \t ! RD(1)  ... (m) \r\n' )
+
+    # receiver ranges
+    if (model ==  'BELLHOP' ) or  (model == 'FirePE' ) :
+        # receiver ranges
+        f.write('{:5i \t \t \t \t ! NRR'.format(len( Pos.r.range ) ))
+        
+        if ( len( Pos.r.range ) >= 2) and equally_spaced( Pos.r.range ) :
+            f.write('\r\n    {:6f} '.format(Pos.r.range[0]) + '{:6f} '.format(Pos.r.range[-1]))
+        else:
+            f.write('\r\n    {:6f}  '.format(Pos.r.range ))
+        f.write('/ \t ! RR(1)  ... (km) \r\n' )
+        write_bell( fid, Beam )
+
+    f.close
+
