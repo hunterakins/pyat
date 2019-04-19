@@ -453,21 +453,44 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
     if ( len( Pos.r.depth ) >= 2) and equally_spaced( Pos.r.depth ) :
         f.write('\r\n    {:6f} '.format(Pos.r.depth[0]) + '{:6f} '.format( Pos.r.depth[-1]))
     else:
-        f.write('\r\n    {:6f}  '.format(Pos.r.depth) )
+        f.write('\r\n    {:6f}  '.format(Pos.r.depth[0]) )
 
     f.write('/ \t ! RD(1)  ... (m) \r\n' )
 
     # receiver ranges
     if (model ==  'BELLHOP' ) or  (model == 'FirePE' ) :
         # receiver ranges
-        f.write('{:5i \t \t \t \t ! NRR'.format(len( Pos.r.range ) ))
+        f.write('{:5d} \t \t \t \t ! NRR'.format(len( Pos.r.range ) ))
         
         if ( len( Pos.r.range ) >= 2) and equally_spaced( Pos.r.range ) :
             f.write('\r\n    {:6f} '.format(Pos.r.range[0]) + '{:6f} '.format(Pos.r.range[-1]))
         else:
-            f.write('\r\n    {:6f}  '.format(Pos.r.range ))
+            f.write('\r\n    {:6f}  '.format(Pos.r.range[0] ))
         f.write('/ \t ! RR(1)  ... (km) \r\n' )
-        write_bell( fid, Beam )
+        write_bell(f, Beam )
 
-    f.close
+    f.close()
 
+
+
+def write_bell(f, Beam):
+    f.write('\''+Beam.RunType+'\''+ ' \t \t \t \t ! Run Type \r\n');
+
+    if (Beam.Ibeam != None):
+        f.write('{:<i}'.format(Beam.Nbeams)+'{:<i}'.format(Beam.Ibeam) +' \t \t \t \t ! Nbeams Ibeam \r\n');
+    else:
+        # if this is a ray trace run and the field Beam.Nrays exists to use
+        # fewer rays in the trace, then use that
+        if ( (Beam).RunType[0 ] == 'R') and (Beam.Nrays != None):
+            f.write('{:d}'.format(Beam.Nrays) +' \t \t \t \t \t ! Nbeams \r\n');
+        else:
+            f.write('{:d}'.format(Beam.Nbeams )+'\t \t \t \t \t ! Nbeams \r\n')
+
+
+    f.write('{:f}'.format( Beam.alpha[ 0 ])+' {:f} '.format(Beam.alpha[ -1 ])+'/ \t \t ! angles (degrees) \r\n');
+    f.write('{:f}'.format(Beam.deltas)+' {:f}'.format(Beam.Box.z)+' {:f}'.format(Beam.Box.r)+'\t ! deltas (m) Box.z (m) Box.r (km) \r\n');
+
+# Cerveny-style Gaussian beams
+    if ( len( Beam.RunType ) > 1) and ( 'GBS' not in Beam.RunType[1:1] ) :
+        f.write('\''+Beam.Type[0:1]+'\''+' {:f}'.format(Beam.epmult)+' {:f}'.format(Beam.rLoop )+' \t \t ! ''Min/Fill/Cer, Sin/Doub/Zero'' Epsmult RLoop (km) \r\n')
+        f.write('{:d}'.format(Beam.Nimage)+' {:d}'.format(Beam.Ibwin)+'  \t \t \t \t ! Nimage Ibwin \r\n')

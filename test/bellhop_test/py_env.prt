@@ -1,0 +1,118 @@
+ BELLHOP/BELLHOP3D
+
+ BELLHOP- Pekeris profile                                                        
+ frequency =   50.00     Hz
+
+ Dummy parameter NMedia =            1
+
+     C-linear approximation to SSP
+     Attenuation units: dB/wavelength
+     VACUUM
+
+ Depth =    4000.00 m
+
+ Sound speed profile:
+   z (m)     alphaR (m/s)   betaR  rho (g/cm^3)  alphaI     betaI
+
+      0.00      1500.00      0.00     1.00       0.0000    0.0000
+    500.00      1350.00      0.00     1.00       0.0000    0.0000
+   1000.00      1200.00      0.00     1.00       0.0000    0.0000
+   1500.00      1350.00      0.00     1.00       0.0000    0.0000
+   2000.00      1500.00      0.00     1.00       0.0000    0.0000
+   3000.00      1500.00      0.00     1.00       0.0000    0.0000
+   4000.00      1500.00      0.00     1.00       0.0000    0.0000
+
+                                 ( RMS roughness =   0.00     )
+     ACOUSTO-ELASTIC half-space
+   4000.00      1500.00      0.00     1.00       0.0000    0.0000
+
+ __________________________________________________________________________
+
+
+ Number of source   depths =            1
+ Source depths (m)
+   20.0000    
+
+ Number of receiver depths =            1
+ Receiver depths (m)
+   50.0000    
+
+ Number of receiver ranges =            1
+ Receiver ranges (km)
+   10.0000    
+
+ Ray trace run
+ Geometric hat beams in Cartesian coordinates
+ Point source (cylindrical coordinates)
+ Rectilinear receiver grid: Receivers at rr( : ) x rd( : )
+
+ Number of beams in elevation   =          100
+ Beam take-off angles (degrees)
+  -5.00000      -4.89899      -4.79798      -4.69697      -4.59596    
+  -4.49495      -4.39394      -4.29293      -4.19192      -4.09091    
+  -3.98990      -3.88889      -3.78788      -3.68687      -3.58586    
+  -3.48485      -3.38384      -3.28283      -3.18182      -3.08081    
+  -2.97980    
+  ...    5.0000000000000000     
+
+ __________________________________________________________________________
+
+
+ Step length,      deltas =    20.000000000000000      m
+
+ Maximum ray depth, Box%z =    100.00000000000000      m
+ Maximum ray range, Box%r =    1000.0000000000000      m
+
+
+Tracing beam       1     -5.00
+Tracing beam       3     -4.80
+Tracing beam       5     -4.60
+Tracing beam       7     -4.39
+Tracing beam       9     -4.19
+Tracing beam      11     -3.99
+Tracing beam      13     -3.79
+Tracing beam      15     -3.59
+Tracing beam      17     -3.38
+Tracing beam      19     -3.18
+Tracing beam      21     -2.98
+Tracing beam      23     -2.78
+Tracing beam      25     -2.58
+Tracing beam      27     -2.37
+Tracing beam      29     -2.17
+Tracing beam      31     -1.97
+Tracing beam      33     -1.77
+Tracing beam      35     -1.57
+Tracing beam      37     -1.36
+Tracing beam      39     -1.16
+Tracing beam      41     -0.96
+Tracing beam      43     -0.76
+Tracing beam      45     -0.56
+Tracing beam      47     -0.35
+Tracing beam      49     -0.15
+Tracing beam      51      0.05
+Tracing beam      53      0.25
+Tracing beam      55      0.45
+Tracing beam      57      0.66
+Tracing beam      59      0.86
+Tracing beam      61      1.06
+Tracing beam      63      1.26
+Tracing beam      65      1.46
+Tracing beam      67      1.67
+Tracing beam      69      1.87
+Tracing beam      71      2.07
+Tracing beam      73      2.27
+Tracing beam      75      2.47
+Tracing beam      77      2.68
+Tracing beam      79      2.88
+Tracing beam      81      3.08
+Tracing beam      83      3.28
+Tracing beam      85      3.48
+Tracing beam      87      3.69
+Tracing beam      89      3.89
+Tracing beam      91      4.09
+Tracing beam      93      4.29
+Tracing beam      95      4.49
+Tracing beam      97      4.70
+Tracing beam      99      4.90
+
+ CPU Time =       0.125E-01s

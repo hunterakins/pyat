@@ -3,6 +3,11 @@ from matplotlib import pyplot as plt
 from scipy.interpolate import interp1d
 
 
+'''
+Objects for interfacing with Michael Porter's models. 
+Designed in analog with the types of objects called by read_shd, write_fieldflp, write_env, etc.
+'''
+
 
 class Source:
     def __init__(self, depth):
@@ -17,6 +22,11 @@ class Pos:
     def __init__(self, Source, Dom):
         self.s = Source
         self.r = Dom
+
+class CInt:
+    def __init__(self, low, high):
+        self.High = high
+        self.Low = low
 
 
 class SSPraw:
@@ -71,8 +81,27 @@ class Bndry:
         self.Top = top
         self.Bot = bot
 
+class Box:
+    def __init__(self, r, z):
+        self.r = r
+        self.z = z
 
-        
+
+class Beam:
+    def __init__(self, RunType=None, Type=None,Nbeams=None, Ibeam=None, Nrays=None, alpha=None, deltas=None, Box=None, epmult=None, rloop=None, Ibwin=None, Nimage = None):
+        self.RunType = RunType
+        self.Type = Type
+        self.Nbeams =  Nbeams
+        self.Ibeam  =  Ibeam 
+        self.Nrays  =  Nrays
+        self.alpha  =  alpha
+        self.deltas =  deltas
+        self.Box    =  Box
+        self.epmult =  epmult
+        self.rloop  =  rloop
+        self.Ibwin = Ibwin
+        self.Nimage = None
+
 
 class Env:
     def __init__(self, SSP, bndy,dens_array=None):
