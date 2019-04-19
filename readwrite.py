@@ -2,7 +2,7 @@ import numpy as np
 from scipy.io import loadmat
 import os
 from struct import unpack
-from pyat import objects
+from pyat.objects import *
 
 
 
@@ -104,10 +104,9 @@ class Empty():
         return
 
 def read_shd_bin(*varargin):
-    Pos = Empty()
-    Pos.s = Empty()
-    Pos.r = Empty()
-
+    s = Source(0)
+    r = Dom(0,0)
+    pos = Pos(s,r)
     '''
     Read TL surfaces from a binary Bellhop/Kraken .SHD file
     without having to convert to ASCII first.
@@ -161,32 +160,32 @@ def read_shd_bin(*varargin):
     freqVec = unpack(str(Nfreq) +'d', f.read(Nfreq*8))
 
     f.seek(4 * 4 * recl) ; #reposition to end of record 4
-    Pos.theta   = unpack(str(Ntheta) +'f', f.read(4*Ntheta))[0]
+    pos.theta   = unpack(str(Ntheta) +'f', f.read(4*Ntheta))[0]
 
     if ( PlotType[ 1 : 2 ] != 'TL' ):
         f.seek(5 * 4 * recl); #reposition to end of record 5
-        Pos.s.x     = unpack(str(Nsx)+'f',  f.read(Nsx*4))
+        pos.s.x     = unpack(str(Nsx)+'f',  f.read(Nsx*4))
         
         f.seek( 6 * 4 * recl); #reposition to end of record 6
-        Pos.s.y     = unpack(str(Nsy) + 'f', f.read(Nsy*4))
+        pos.s.y     = unpack(str(Nsy) + 'f', f.read(Nsy*4))
     else:   # compressed format for TL from FIELD3D
         f.seek(5 * 4 * recl, -1 ); #reposition to end of record 5
-        Pos.s.x     = f.read(2,    'float32' )
-        Pos.s.x     = linspace( Pos.s.x( 1 ), Pos.s.x( end ), Nsx )
+        pos.s.x     = f.read(2,    'float32' )
+        pos.s.x     = linspace( pos.s.x( 1 ), pos.s.x( end ), Nsx )
         
         f.seek(6 * 4 * recl, -1 ); #reposition to end of record 6
-        Pos.s.y     = f.read(2,    'float32' )
-        Pos.s.y     = linspace( Pos.s.y( 1 ), Pos.s.y( end ), Nsy )
+        pos.s.y     = f.read(2,    'float32' )
+        pos.s.y     = linspace( pos.s.y( 1 ), pos.s.y( end ), Nsy )
 
     f.seek(7 * 4 * recl); #reposition to end of record 7
-    Pos.s.depth = unpack(str(Nsd)+'f', f.read(Nsd*4))
+    pos.s.depth = unpack(str(Nsd)+'f', f.read(Nsd*4))
 
     f.seek(8 * 4 * recl); #reposition to end of record 8
-    Pos.r.depth = unpack(str(Nrd) + 'f', f.read(Nrd*4))
+    pos.r.depth = unpack(str(Nrd) + 'f', f.read(Nrd*4))
 
     f.seek(9 * 4 * recl); #reposition to end of record 9
-    Pos.r.range = unpack(str(Nrr) + 'f',f.read(Nrr*4))
-    # Pos.r.range = Pos.r.range';   # make it a row vector
+    pos.r.range = unpack(str(Nrr) + 'f',f.read(Nrr*4))
+    # pos.r.range = pos.r.range';   # make it a row vector
 
     ##
     # Each record holds data from one source depth/receiver depth pair
@@ -226,13 +225,13 @@ def read_shd_bin(*varargin):
                     
     else:              # read for a source at the desired x, y, z.
         
-        xdiff = abs( Pos.s.x - xs * 1000. )
+        xdiff = abs( pos.s.x - xs * 1000. )
         [ holder, idxX ] = min( xdiff )
-        ydiff = abs( Pos.s.y - ys * 1000. )
+        ydiff = abs( pos.s.y - ys * 1000. )
         [ holder, idxY ] = min( ydiff )
         
         # show the source x, y that was found to be closest
-        # [ Pos.s.x( idxX ) Pos.s.y( idxY ) ]
+        # [ pos.s.x( idxX ) pos.s.y( idxY ) ]
         for itheta in range(Ntheta):
             for isd in range(Nsd):
                 # disp( [ 'Reading data for source at depth ' num2str( isd ) ' of ' num2str( Nsd ) ] )
@@ -251,7 +250,7 @@ def read_shd_bin(*varargin):
                     
 
     f.close()
-    return [ title, PlotType, freqVec, atten, Pos, pressure ] 
+    return [ title, PlotType, freqVec, atten, pos, pressure ] 
 
 
 def read_shd ( *varargin ):

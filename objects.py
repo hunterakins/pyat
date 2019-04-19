@@ -12,6 +12,8 @@ Designed in analog with the types of objects called by read_shd, write_fieldflp,
 class Source:
     def __init__(self, depth):
         self.depth = depth
+        self.x = None
+        self.y = None
 
 class Dom:
     def __init__(self, ran, depth):
