@@ -8,13 +8,12 @@ from pyat.readwrite import *
 
 
 
-sd	=	20
+sd	=	1000
 #rd = [94.125, 99.755, 105.38, 111.00, 116.62, 122.25, 127.88, 139.12, 144.74, 150.38, 155.99, 161.62, 167.26, 172.88, 178.49, 184.12, 189.76, 195.38, 200.99, 206.62, 212.25]
 rr	=	2.5
 
-Z = np.arange(50, 51, 1)
-X = np.arange(10, 11, 1)
-print(X)
+Z = np.linspace(1, 5000, 201)
+X = np.arange(1, 100, .1)
 
 cw		=	1500
 pw		=	1
@@ -33,12 +32,10 @@ pos.Nsd = 1
 pos.Nrd = len(X)
 
 
-depth = [0, 4000, 5000]
+depth = [0, 5000]
+z1 = [0.0,  200.0,  250.0,  400.0,  600.0,  800.0, 1000.0, 1200.0, 1400.0, 1600.0, 1800.0, 2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0, 3200.0, 3400.0, 3600.0, 3800.0, 4000.0, 4200.0, 4400.0, 4600.0, 4800.0, 5000.0]
 
-z1 = [0, 500, 1000, 1500, 2000, 3000, 4000]
-# Layer 1
-#z1		=	depth[:]	
-alphaR	=	cw*np.array([1,.9, .8, .9, 1, 1, 1])
+alphaR = [1548.52,1530.29,1526.69,1517.78,1509.49,1504.30,1501.38,1500.14,1500.12,1501.02,1502.57,1504.62,1507.02,1509.69,1512.55,1515.56,1518.67,1521.85,1525.10,1528.38,1531.70,1535.04,1538.39,1541.76,1545.14,1548.52,1551.91]
 print(alphaR)
 betaR	=	0.0*np.array([1]*len(z1))		
 rho		=	pw*np.array([1]*len(z1))		
@@ -71,8 +68,8 @@ bottom = BotBndry(Opt, hs)
 top = TopBndry('CVW')
 bdy = Bndry(top, bottom)
 
-plt.plot(ssp.sspf(np.linspace(0, 4000, 100)))
-plt.show()
+#plt.plot(ssp.sspf(np.linspace(0, 4000, 100)))
+#plt.show()
 
 class Empty:
     def __init__(self):
@@ -85,24 +82,34 @@ RMax = max(X)
 freq = 50
 
 # Beam params
-run_type = 'R'
+run_type = 'I'
 nbeams = 100
-alpha = np.linspace(-5, 5, 100)
-box = Box(1, 100)
-deltas=20
+alpha = np.linspace(-20,20, 100)
+box = Box(100, 5500)
+deltas=0
 beam = Beam(RunType=run_type, Nbeams=nbeams, alpha=alpha,Box=box,deltas=deltas)
 
 write_env('py_env.env', 'BELLHOP', 'Pekeris profile', freq, ssp, bdy, pos, beam, cInt, RMax)
   
 
-s = Source([sd])
-ran =  np.arange(0,10, 10/1e3)
-depth = np.arange(0,150,1)
-r = Dom(ran, depth)
+#s = Source([sd])
+#ran =  np.arange(0,10, 10/1e3)
+#depth = np.arange(0,150,1)
+#r = Dom(ran, depth)
 
-pos = Pos(s, r)
 
 system("bellhop.exe py_env")
+
+[x,x,x,x,ppos, p] = read_shd("py_env.shd")
+
+p = abs(p)
+p = 10*np.log10(p/np.max(p))
+print(p)
+levs = np.linspace(-30, 0, 20)
+plt.contourf(np.squeeze(p), levels=levs)
+plt.gca().invert_yaxis()
+plt.show()
+
 '''
 system("/home/hunter/Downloads/at/bin/field.exe py_env")
 [x,x,x,x,Pos1,pressure]= read_shd('py_env.shd')
