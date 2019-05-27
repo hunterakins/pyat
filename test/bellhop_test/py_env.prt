@@ -9,110 +9,149 @@
      Attenuation units: dB/wavelength
      VACUUM
 
- Depth =    4000.00 m
+ Depth =    5000.00 m
 
  Sound speed profile:
    z (m)     alphaR (m/s)   betaR  rho (g/cm^3)  alphaI     betaI
 
-      0.00      1500.00      0.00     1.00       0.0000    0.0000
-    500.00      1350.00      0.00     1.00       0.0000    0.0000
-   1000.00      1200.00      0.00     1.00       0.0000    0.0000
-   1500.00      1350.00      0.00     1.00       0.0000    0.0000
-   2000.00      1500.00      0.00     1.00       0.0000    0.0000
-   3000.00      1500.00      0.00     1.00       0.0000    0.0000
-   4000.00      1500.00      0.00     1.00       0.0000    0.0000
+      0.00      1548.52      0.00     1.00       0.0000    0.0000
+    200.00      1530.29      0.00     1.00       0.0000    0.0000
+    250.00      1526.69      0.00     1.00       0.0000    0.0000
+    400.00      1517.78      0.00     1.00       0.0000    0.0000
+    600.00      1509.49      0.00     1.00       0.0000    0.0000
+    800.00      1504.30      0.00     1.00       0.0000    0.0000
+   1000.00      1501.38      0.00     1.00       0.0000    0.0000
+   1200.00      1500.14      0.00     1.00       0.0000    0.0000
+   1400.00      1500.12      0.00     1.00       0.0000    0.0000
+   1600.00      1501.02      0.00     1.00       0.0000    0.0000
+   1800.00      1502.57      0.00     1.00       0.0000    0.0000
+   2000.00      1504.62      0.00     1.00       0.0000    0.0000
+   2200.00      1507.02      0.00     1.00       0.0000    0.0000
+   2400.00      1509.69      0.00     1.00       0.0000    0.0000
+   2600.00      1512.55      0.00     1.00       0.0000    0.0000
+   2800.00      1515.56      0.00     1.00       0.0000    0.0000
+   3000.00      1518.67      0.00     1.00       0.0000    0.0000
+   3200.00      1521.85      0.00     1.00       0.0000    0.0000
+   3400.00      1525.10      0.00     1.00       0.0000    0.0000
+   3600.00      1528.38      0.00     1.00       0.0000    0.0000
+   3800.00      1531.70      0.00     1.00       0.0000    0.0000
+   4000.00      1535.04      0.00     1.00       0.0000    0.0000
+   4200.00      1538.39      0.00     1.00       0.0000    0.0000
+   4400.00      1541.76      0.00     1.00       0.0000    0.0000
+   4600.00      1545.14      0.00     1.00       0.0000    0.0000
+   4800.00      1548.52      0.00     1.00       0.0000    0.0000
+   5000.00      1551.91      0.00     1.00       0.0000    0.0000
 
                                  ( RMS roughness =   0.00     )
      ACOUSTO-ELASTIC half-space
-   4000.00      1500.00      0.00     1.00       0.0000    0.0000
+   5000.00      1551.91      0.00     1.00       0.0000    0.0000
 
  __________________________________________________________________________
 
 
  Number of source   depths =            1
  Source depths (m)
-   20.0000    
+   1000.00    
 
- Number of receiver depths =            1
+ Number of receiver depths =          201
  Receiver depths (m)
-   50.0000    
+   1.00000       25.9950       50.9900       75.9850       100.980    
+   125.975       150.970       175.965       200.960       225.955    
+   250.950       275.945       300.940       325.935       350.930    
+   375.925       400.920       425.915       450.910       475.905    
+   500.900    
+  ...    5000.00000    
 
- Number of receiver ranges =            1
+ Number of receiver ranges =          990
  Receiver ranges (km)
-   10.0000    
+   1.00000       1.10000       1.20000       1.30000       1.40000    
+   1.50000       1.60000       1.70000       1.80000       1.90000    
+   2.00000       2.10000       2.20000       2.30000       2.40000    
+   2.50000       2.60000       2.70000       2.80000       2.90000    
+   3.00000    
+  ...    99.9000015    
 
- Ray trace run
+ Incoherent TL calculation
  Geometric hat beams in Cartesian coordinates
  Point source (cylindrical coordinates)
  Rectilinear receiver grid: Receivers at rr( : ) x rd( : )
 
  Number of beams in elevation   =          100
  Beam take-off angles (degrees)
-  -5.00000      -4.89899      -4.79798      -4.69697      -4.59596    
-  -4.49495      -4.39394      -4.29293      -4.19192      -4.09091    
-  -3.98990      -3.88889      -3.78788      -3.68687      -3.58586    
-  -3.48485      -3.38384      -3.28283      -3.18182      -3.08081    
-  -2.97980    
-  ...    5.0000000000000000     
+  -20.0000      -19.5960      -19.1919      -18.7879      -18.3838    
+  -17.9798      -17.5758      -17.1717      -16.7677      -16.3636    
+  -15.9596      -15.5556      -15.1515      -14.7475      -14.3434    
+  -13.9394      -13.5354      -13.1313      -12.7273      -12.3232    
+  -11.9192    
+  ...    20.000000000000000     
 
  __________________________________________________________________________
 
 
- Step length,      deltas =    20.000000000000000      m
+ Step length,      deltas =    0.0000000000000000      m
 
- Maximum ray depth, Box%z =    100.00000000000000      m
- Maximum ray range, Box%r =    1000.0000000000000      m
+ Maximum ray depth, Box%z =    5500.0000000000000      m
+ Maximum ray range, Box%r =    100000.00000000000      m
+ No beam shift in effect
 
 
-Tracing beam       1     -5.00
-Tracing beam       3     -4.80
-Tracing beam       5     -4.60
-Tracing beam       7     -4.39
-Tracing beam       9     -4.19
-Tracing beam      11     -3.99
-Tracing beam      13     -3.79
-Tracing beam      15     -3.59
-Tracing beam      17     -3.38
-Tracing beam      19     -3.18
-Tracing beam      21     -2.98
-Tracing beam      23     -2.78
-Tracing beam      25     -2.58
-Tracing beam      27     -2.37
-Tracing beam      29     -2.17
-Tracing beam      31     -1.97
-Tracing beam      33     -1.77
-Tracing beam      35     -1.57
-Tracing beam      37     -1.36
-Tracing beam      39     -1.16
-Tracing beam      41     -0.96
-Tracing beam      43     -0.76
-Tracing beam      45     -0.56
-Tracing beam      47     -0.35
-Tracing beam      49     -0.15
-Tracing beam      51      0.05
-Tracing beam      53      0.25
-Tracing beam      55      0.45
-Tracing beam      57      0.66
-Tracing beam      59      0.86
-Tracing beam      61      1.06
-Tracing beam      63      1.26
-Tracing beam      65      1.46
-Tracing beam      67      1.67
-Tracing beam      69      1.87
-Tracing beam      71      2.07
-Tracing beam      73      2.27
-Tracing beam      75      2.47
-Tracing beam      77      2.68
-Tracing beam      79      2.88
-Tracing beam      81      3.08
-Tracing beam      83      3.28
-Tracing beam      85      3.48
-Tracing beam      87      3.69
-Tracing beam      89      3.89
-Tracing beam      91      4.09
-Tracing beam      93      4.29
-Tracing beam      95      4.49
-Tracing beam      97      4.70
-Tracing beam      99      4.90
+ Step length,      deltas =    500.00000000000000      m (automatically selected)
 
- CPU Time =       0.125E-01s
+Tracing beam       1    -20.00
+
+ Geometic hat beams                      
+ halfwidth  =    1355.4034443896678     
+ epsilonOpt =                (0.0000000000000000,288573898.70741171)
+ EpsMult    =    1.0000000000000000     
+
+Tracing beam       3    -19.19
+Tracing beam       5    -18.38
+Tracing beam       7    -17.58
+Tracing beam       9    -16.77
+Tracing beam      11    -15.96
+Tracing beam      13    -15.15
+Tracing beam      15    -14.34
+Tracing beam      17    -13.54
+Tracing beam      19    -12.73
+Tracing beam      21    -11.92
+Tracing beam      23    -11.11
+Tracing beam      25    -10.30
+Tracing beam      27     -9.49
+Tracing beam      29     -8.69
+Tracing beam      31     -7.88
+Tracing beam      33     -7.07
+Tracing beam      35     -6.26
+Tracing beam      37     -5.45
+Tracing beam      39     -4.65
+Tracing beam      41     -3.84
+Tracing beam      43     -3.03
+Tracing beam      45     -2.22
+Tracing beam      47     -1.41
+Tracing beam      49     -0.61
+Tracing beam      51      0.20
+Tracing beam      53      1.01
+Tracing beam      55      1.82
+Tracing beam      57      2.63
+Tracing beam      59      3.43
+Tracing beam      61      4.24
+Tracing beam      63      5.05
+Tracing beam      65      5.86
+Tracing beam      67      6.67
+Tracing beam      69      7.47
+Tracing beam      71      8.28
+Tracing beam      73      9.09
+Tracing beam      75      9.90
+Tracing beam      77     10.71
+Tracing beam      79     11.52
+Tracing beam      81     12.32
+Tracing beam      83     13.13
+Tracing beam      85     13.94
+Tracing beam      87     14.75
+Tracing beam      89     15.56
+Tracing beam      91     16.36
+Tracing beam      93     17.17
+Tracing beam      95     17.98
+Tracing beam      97     18.79
+Tracing beam      99     19.60
+
+ CPU Time =       0.733E-01s

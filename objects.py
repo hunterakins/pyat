@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from matplotlib import pyplot as plt
 from scipy.interpolate import interp1d
 
@@ -30,6 +31,11 @@ class CInt:
         self.High = high
         self.Low = low
 
+class Ice:
+    def __init__(self, BumDen, eta, xi):
+        self.BumDen=  BumDen
+        self.eta = eta
+        self.xi = xi
 
 class SSPraw:
     def __init__(self,z, alphaR, betaR, rho, alphaI, betaI):
@@ -39,6 +45,8 @@ class SSPraw:
         self.rho = rho 
         self.alphaI = alphaI # atten. in array (alpha (z))
         self.betaI = betaI     
+
+    def make_sspf(self):
         self.sspf = interp1d(self.z, self.alphaR)
 
 class SSP:
@@ -49,12 +57,24 @@ class SSP:
         self.sigma		=	[0, 0]	 #not sure
         self.depth		=	depth # depth array for layers
         self.raw = raw # list of raw ssp profile
-        if NMedia > 1:
+        self.sspf = None
+
+    def make_sspf(self):
+        for raw in self.raw:
+            raw.make_sspf()
+        if self.NMedia > 1:
             self.ssp_vals = np.zeros((len(self.depth), 1))
-            j = 0
-            for i in range(NMedia-1):
-                layer_depth = self.raw[i].z[-1] # get max depth
-                self.sspf = lambda z: np.piecewise(z, [z<layer_depth, z>=layer_depth], [lambda z: self.raw[i].sspf(z), lambda z: self.raw[i+1].sspf(z)])
+            if self.NMedia == 2:
+                layer_depth = self.raw[0].z[-1]
+                print('ld', layer_depth)
+                self.sspf = lambda z: np.piecewise(z, [z<layer_depth, z>=layer_depth], [lambda z: self.raw[0].sspf(z), lambda z: self.raw[1].sspf(z)])
+            elif self.NMedia == 3:
+                layer_depth_one = self.raw[0].z[-1]
+                layer_depth_two = self.raw[1].z[-1]
+                func1 = lambda z: np.piecewise(z, [z<layer_depth_one, z>= layer_depth_one], [lambda z: self.raw[0].sspf(z), lambda z: self.raw[1].sspf(z)])
+                self.sspf = lambda z: np.piecewise(z, [z<layer_depth_two, z>= layer_depth_two], [lambda z: func1(z), lambda z: self.raw[2].sspf(z)])
+            else:
+                raise ValueError("too many layers")
         else:
             self.ssp_vals = self.raw[0].alphaR
             self.sspf = self.raw[0].sspf
@@ -77,6 +97,9 @@ class BotBndry:
 class TopBndry:
     def __init__(self, Opt):
         self.Opt = Opt
+        self.cp = None
+        self.cs = None
+        self.rho = None 
 
 class Bndry:
     def __init__(self, top, bot):
@@ -87,7 +110,6 @@ class Box:
     def __init__(self, r, z):
         self.r = r
         self.z = z
-
 
 class Beam:
     def __init__(self, RunType=None, Type=None,Nbeams=None, Ibeam=None, Nrays=None, alpha=None, deltas=None, Box=None, epmult=None, rloop=None, Ibwin=None, Nimage = None):
@@ -104,6 +126,10 @@ class Beam:
         self.Ibwin = Ibwin
         self.Nimage = None
 
+class cInt:
+    def __init__(self, low, high):
+        self.Low = low
+        self.High = high
 
 class Env:
     def __init__(self, SSP, bndy,dens_array=None):
