@@ -153,7 +153,7 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
     vls = [d, Bdry.Bot.hs.alphaR, Bdry.Bot.hs.betaR, Bdry.Bot.hs.rho, \
                     Bdry.Bot.hs.alphaI, Bdry.Bot.hs.betaI]
     strings = [np.array2string(x, formatter = fmtr)[1:-1] for x in vls]
-    s = '  {:6.2f}'.format(SSP.depth[SSP.NMedia])
+    s = '  {:6.2f} '.format(SSP.depth[SSP.NMedia])
     for string in strings[1:]:
         s += string
     if ( Bdry.Bot.Opt[0] == 'A' ):
