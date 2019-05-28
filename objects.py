@@ -26,7 +26,7 @@ class Pos:
         self.s = Source
         self.r = Dom
 
-class CInt:
+class cInt:
     def __init__(self, low, high):
         self.High = high
         self.Low = low
@@ -53,8 +53,8 @@ class SSP:
     def __init__(self, raw, depth, NMedia, Opt=None, N=None, sigma=None):
         self.NMedia	= NMedia # number of media layers
         self.Opt = Opt # option: not sure what this is for
-        self.N			=	[0, 0]	 # not sure
-        self.sigma		=	[0, 0]	 #not sure
+        self.N			=	N	 # array with num points in each layer
+        self.sigma		=	sigma	 # not sure
         self.depth		=	depth # depth array for layers
         self.raw = raw # list of raw ssp profile
         self.sspf = None
@@ -81,11 +81,11 @@ class SSP:
 
 class HS:
     def __init__(self, alphaR=np.array([]), betaR=np.array([]), rho=np.array([]), alphaI=np.array([]), betaI=np.array([])):
-        self.alphaR = alphaR
-        self.betaR = betaR
-        self.rho = rho
-        self.alphaI = alphaI
-        self.betaI = betaI
+        self.alphaR = np.array(alphaR)
+        self.betaR = np.array(betaR)
+        self.rho = np.array(rho)
+        self.alphaI = np.array(alphaI)
+        self.betaI = np.array(betaI)
         
 
 

@@ -165,7 +165,6 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
         f.write('{:8.2f} \t \t \t ! RMax (km) \r\n'.format(RMax ))    # maximum range
 
     # source depths
-
     f.write('{:5d} \t \t \t \t ! NSD'.format(len( Pos.s.depth ) ))
 
     if ( len( Pos.s.depth ) >= 2) and equally_spaced( Pos.s.depth ):
@@ -679,7 +678,7 @@ def read_env_core( envfil ):
         if AttenUnit[0] not in atten_opts:
             raise ValueError( 'Unknown attenuation units, must be ' + str(atten_opts) )
         
-        [ bdry.Top.cp, bdry.Top.cs, bdry.Top.rho, holder, bdry.Top.HS, line_ind ] = topbot(lines, line_ind, freq, bdry.Top.BC, AttenUnit )
+        [ bdry.Top.cp, bdry.Top.cs, bdry.Top.rho, holder, bdry.Top.hs, line_ind ] = topbot(lines, line_ind, freq, bdry.Top.BC, AttenUnit )
 
         ssp_z   = []
         ssp_c   = []
@@ -785,7 +784,7 @@ def read_env_core( envfil ):
         bdry.Bot.BC    = bdry.Bot.Opt[0]
 
         ## TRANSLATE TOPBOT IN BELLHOP DIR
-        [ bdry.Bot.cp, bdry.Bot.cs, bdry.Bot.rho, holder, bdry.Bot.HS, line_ind ] = topbot( lines, line_ind, freq, bdry.Bot.BC, AttenUnit )
+        [ bdry.Bot.cp, bdry.Bot.cs, bdry.Bot.rho, holder, bdry.Bot.hs, line_ind ] = topbot( lines, line_ind, freq, bdry.Bot.BC, AttenUnit )
             
 
         bdry.Top.depth = ssp_depth[0]
@@ -800,7 +799,7 @@ def read_env_core( envfil ):
         I = Loc[ NLastAcoustic ] + ssp_Npts[ NLastAcoustic ]
         bdry.Bot.rhoIns = ssp_rho[ I ]
         bdry.Bot.cIns   = ssp_c[   I ]
-        ssp = SSP(ssp_raw_list, ssp_depth, NMedia, N=ssp_Npts, sigma=ssp_sigma)
+        ssp = SSP(ssp_raw_list, ssp_depth, NMedia, N=ssp_N, sigma=ssp_sigma)
         ssp.make_sspf()
     return [TitleEnv, freq, ssp, bdry, lines, line_ind]
 
@@ -917,7 +916,7 @@ def  read_env( envfil, model ):
     else:   # dummy value for models that don't use Beam parameters
         beam = Beam('CG', Nbeams=0, alpha= [-15,15], Box=Box(1.05*RMax, 1.05*np.max(pos.r.depth)), deltas = 0) 
         pos.r.range     = np.linspace( 0, RMax, 501 )    # set up receiver range vector
-    return  [ TitleEnv, freq, ssp, bdry, pos, beam, cInt, RMax]
+    return  [ TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax]
 
 
 if __name__ == '__main__':
