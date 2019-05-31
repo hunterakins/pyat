@@ -95,7 +95,7 @@ class BotBndry:
         self.hs = Hs
 
 class TopBndry:
-    def __init__(self, Opt):
+    def __init__(self, Opt, depth=[]):
         self.Opt = Opt
         self.cp = None
         self.cs = None
@@ -148,6 +148,21 @@ class Field:
         self.Pos = Pos
         self.greens = greens_mat
         self.omega = omega # a list of frequencies
+
+class Modes:
+    def __init__(self, M, k, z, phi, Top, Bot, N, Mater, Nfreq, Nmedia, depth, rho, freqvec):
+        self.M = M
+        self.k = k
+        self.z = z
+        self.phi = phi
+        self.Top = Top
+        self.Bot = Bot
+        self.N = N
+        self.Nfreq = Nfreq
+        self.Nmedia = Nmedia
+        self.depth = depth
+        self.rho = rho
+        self.freqvec = freqvec
 
 
 class KernInput:

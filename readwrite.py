@@ -283,7 +283,6 @@ def read_shd_bin(*varargin):
     if ( PlotType[ 1 : 2 ] != 'TL' ):
         f.seek(5 * 4 * recl); #reposition to end of record 5
         pos.s.x     = unpack(str(Nsx)+'f',  f.read(Nsx*4))
-        
         f.seek( 6 * 4 * recl); #reposition to end of record 6
         pos.s.y     = unpack(str(Nsy) + 'f', f.read(Nsy*4))
     else:   # compressed format for TL from FIELD3D
@@ -688,7 +687,7 @@ def read_env_core( envfil ):
         Loc = [0] * NMedia
         ssp_Npts = [0]*NMedia
         ssp_N = [0]*NMedia
-        ssp_sigma = [0]*NMedia
+        ssp_sigma = [0]*(NMedia+1)
         for medium in range(NMedia):
             if ( medium == 1 ):
                 Loc[medium] = 0
@@ -918,10 +917,186 @@ def  read_env( envfil, model ):
         pos.r.range     = np.linspace( 0, RMax, 501 )    # set up receiver range vector
     return  [ TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax]
 
+def read_modes(**kwargs):
+    '''
+     Read the modes produced by KRAKEN
+     usage:
+     keys are 'fname', 'freq', 'modes'
+    'fname' and 'freq' are mandatory, 'modes' is if you only want a subset of modes
+        [ Modes ] = read_modes_bin( filename, modes )
+     filename is without the extension, which is assumed to be '.moA'
+     freq is the frequency (involved for broadband runs)
+       (you can use freq=0 if there is only one frequency)
+     modes is an optional vector of mode indices
+
+     derived from readKRAKEN.m    Feb 12, 1996 Aaron Thode
+
+        Translated to python by Hunter Akins 2019
+
+     Modes.M          number of modes
+     Modes.k          wavenumbers
+     Modes.z          sample depths for modes
+     Modes.phi        modes
+
+     Modes.Top.bc
+     Modes.Top.cp
+     Modes.Top.cs
+     Modes.Top.rho
+     Modes.Top.depth
+
+     Modes.Bot.bc
+     Modes.Bot.cp
+     Modes.Bot.cs
+     Modes.Bot.rho
+     Modes.Bot.depth
+
+     Modes.N          Number of depth points in each medium
+     Modes.Mater      Material type of each medium (acoustic or elastic)
+     Modes.Nfreq      Number of frequencies
+     Modes.Nmedia     Number of media
+     Modes.depth      depths of interfaces
+     Modes.rho        densities in each medium
+     Modes.freqVec    vector of frequencies for which the modes were calculated
+    '''
+
+    
+    filename = kwargs['fname']
+    if 'freq' in kwargs.keys():
+        freq = kwargs['freq']
+    if 'modes' in kwargs.keys():
+        modes = kwargs['modes']
+        
+    with open(filename, 'rb') as f:
+        iRecProfile = 1;   # (first time only)
+        
+        lrecl     = 4*unpack('<I', f.read(4))[0];     #record length in bytes
+
+        rec = iRecProfile - 1;
+
+    #    fseek( fid, rec * lrecl + 4, -1 ); # do I need to do this ?
+
+        title    = unpack('80s', f.read(80))
+        Nfreq  = unpack('<I', f.read(4))[0]
+        Nmedia = unpack('<I', f.read(4))[0]
+        Ntot = unpack('<I', f.read(4))[0]
+        Nmat = unpack('<I', f.read(4))[0]
+        N = []
+        Mater = []
+
+
+        if Ntot < 0:
+            return
+
+        # N and Mater
+        rec   = iRecProfile;
+        f.seek(rec * lrecl); # reposition to next level
+        for Medium in range(Nmedia):
+           N.append(unpack('<I', f.read(4))[0])
+           Mater.append(unpack('8s', f.read(8))[0])
+
+
+        # depth and density
+        rec = iRecProfile + 1
+        f.seek(rec * lrecl)
+        bulk        = unpack('f'*2*Nmedia, f.read(4*2*Nmedia))
+        depth = [bulk[i] for i in range(0,2*Nmedia,2)]
+        rho = [bulk[i+1] for i in range(0,2*Nmedia,2)]
+
+        # frequencies
+        rec = iRecProfile + 2;
+        f.seek(rec * lrecl);
+        freqVec = unpack('d', f.read(8))[0]
+        freqVec = np.array(freqVec)
+
+        # z
+        rec = iRecProfile + 3
+        f.seek(rec * lrecl)
+        z = unpack('f', f.read(4))[0]
+
+        # read in the modes
+
+        # identify the index of the frequency closest to the user-specified value
+        freqdiff = abs(freqVec - freq );
+        freq_index = np.argmin( freqdiff );
+
+        # number of modes, m
+        iRecProfile = iRecProfile + 4;
+        rec = iRecProfile;
+
+        # skip through the mode file to get to the chosen frequency
+        for ifreq in range(freq_index+1):
+            f.seek(rec * lrecl);
+            M = unpack('l', f.read(8))[0]
+       
+           
+           # advance to the next frequency
+            if ( ifreq < freq_index ):
+                iRecProfile = iRecProfile + 2 + M + 1 + floor( ( 2 * M - 1 ) / lrecl );   # advance to next profile
+                rec = iRecProfile;
+                f.seek(rec * lrecl)
+
+        if 'modes' not in kwargs.keys():
+            modes = np.linspace(0, M-1, M, dtype=int);    # read all modes if the user didn't specify
+
+        # Top and bottom halfspace info
+
+        # Top
+        rec = iRecProfile + 1
+        f.seek(rec * lrecl)
+        top_bc    = unpack('c', f.read(1))[0]
+        cp              = unpack('ff', f.read(8))
+        top_cp    = complex( cp[ 0 ], cp[ 1 ] )
+        cs              = unpack('ff', f.read(8))
+        top_cs    = complex( cs[ 1 ], cs[ 1 ] )
+        top_rho   = unpack('f', f.read(4))[0]
+        top_depth = unpack('f', f.read(4))[0]
+    
+        top_hs = HS(alphaR=top_cp.real, alphaI=top_cp.imag, betaR=top_cs.real, betaI=top_cs.imag)
+        top = TopBndry(top_bc, depth=top_depth)  
+
+        # Bottom
+        bot_bc    = unpack('c', f.read(1))[0]
+        cp              = unpack('ff', f.read(8))
+        bot_cp    = complex( cp[ 0 ], cp[ 1 ] )
+        cs              = unpack('ff', f.read(8))
+        bot_cs    = complex( cs[ 1 ], cs[ 1 ] )
+        bot_rho   = unpack('f', f.read(4))[0]
+        bot_depth = unpack('f', f.read(4))[0]
+  
+        bot_hs = HS(alphaR=bot_cp.real, alphaI=bot_cp.imag, betaR=bot_cs.real, betaI=bot_cs.imag)
+        bot = BotBndry(bot_bc, bot_hs, depth=bot_depth)  
+
+        rec = iRecProfile
+        f.seek(rec * lrecl)
+        # if there are modes, read them
+        if ( M == 0 ):
+           modes_phi = []
+           modes_k   = []
+        else:
+            modes_phi = np.zeros((Nmat, len( modes )),dtype=np.complex64)   # number of modes
+           
+            for ii in range(len(modes)):
+                rec = iRecProfile + 2 + int(modes[ ii ])
+                f.seek(rec * lrecl)
+                phi = unpack('f'*2*Nmat, f.read(2*Nmat*4)) # Data is read columwise
+                phir = np.array([phi[i] for i in range(0,2*Nmat,2)])
+                phii = np.array([phi[i+1] for i in range(0,2*Nmat,2)])
+                
+                modes_phi[ :, ii ] = phir + complex(0, 1)*phii;
+           
+            rec = iRecProfile + 2 + M;
+            f.seek(rec * lrecl)
+            k    = unpack('f'*2*M, f.read(4*2*M))
+            kr = np.array([k[i] for i in range(0,2*M,2)])
+            ki = np.array([k[i+1] for i in range(0,2*M,2)])
+            modes_k = kr+ complex(0,1) * ki
+            modes_k = np.array([modes_k[i] for i in modes], dtype=np.complex64)  # take the subset that the user specified
+    modes = Modes(M, modes_k, z, modes_phi, top, bot, N, Mater, Nfreq, Nmedia, depth, rho, freqVec)
+    return modes
 
 if __name__ == '__main__':
     print('Running test for env files')
-    [title, freq, ssp, bdry, pos, beam, cInt, RMax] = read_env('test/krak_test/py_env.env', 'KRAKEN')
+    [title, freq, ssp, bdry, pos, beam, cint, RMax] = read_env('test/krak_test/py_env.env', 'KRAKEN')
     a = np.linspace(0, 150, 100)
     plt.plot(a,ssp.sspf(a))
     plt.show()
@@ -932,7 +1107,7 @@ if __name__ == '__main__':
    # plt.plot(a,ssp.sspf(a))
    # plt.show()
 
-    [title, freq, ssp, bdry, pos, beam, cInt, RMax] = read_env('test/bellhop_test/swellex.env', 'KRAKEN')
+    [title, freq, ssp, bdry, pos, beam, cint, RMax] = read_env('test/bellhop_test/swellex.env', 'KRAKEN')
     a = np.linspace(0, 1040, 100)
     plt.plot(a, ssp.sspf(a))
     plt.show()
