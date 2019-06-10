@@ -181,7 +181,9 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
     if ( len( Pos.r.depth ) >= 2) and equally_spaced( Pos.r.depth ) :
         f.write('\r\n    {:6f} '.format(Pos.r.depth[0]) + '{:6f} '.format( Pos.r.depth[-1]))
     else:
-        f.write('\r\n    {:6f}  '.format(Pos.r.depth[0]) )
+        f.write('\r\n    ')
+        for tmp_depth in Pos.r.depth:
+            f.write('{:6f} '.format(tmp_depth) )
 
     f.write('/ \t ! RD(1)  ... (m) \r\n' )
 
@@ -931,7 +933,7 @@ def read_modes(**kwargs):
 
      derived from readKRAKEN.m    Feb 12, 1996 Aaron Thode
 
-        Translated to python by Hunter Akins 2019
+     Translated to python by Hunter Akins 2019
 
      Modes.M          number of modes
      Modes.k          wavenumbers
@@ -973,13 +975,13 @@ def read_modes(**kwargs):
 
         rec = iRecProfile - 1;
 
-    #    fseek( fid, rec * lrecl + 4, -1 ); # do I need to do this ?
+        f.seek(rec * lrecl + 4) # do I need to do this ?
 
         title    = unpack('80s', f.read(80))
         Nfreq  = unpack('<I', f.read(4))[0]
         Nmedia = unpack('<I', f.read(4))[0]
-        Ntot = unpack('<I', f.read(4))[0]
-        Nmat = unpack('<I', f.read(4))[0]
+        Ntot = unpack('<l', f.read(4))[0]
+        Nmat = unpack('<l', f.read(4))[0]
         N = []
         Mater = []
 
@@ -1011,7 +1013,7 @@ def read_modes(**kwargs):
         # z
         rec = iRecProfile + 3
         f.seek(rec * lrecl)
-        z = unpack('f', f.read(4))[0]
+        z = unpack('f'*Ntot, f.read(Ntot*4))
 
         # read in the modes
 
