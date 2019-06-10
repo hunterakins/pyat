@@ -26,11 +26,6 @@ class Pos:
         self.s = Source
         self.r = Dom
 
-class cInt:
-    def __init__(self, low, high):
-        self.High = high
-        self.Low = low
-
 class Ice:
     def __init__(self, BumDen, eta, xi):
         self.BumDen=  BumDen
@@ -112,7 +107,7 @@ class Box:
         self.z = z
 
 class Beam:
-    def __init__(self, RunType=None, Type=None,Nbeams=None, Ibeam=None, Nrays=None, alpha=None, deltas=None, Box=None, epmult=None, rloop=None, Ibwin=None, Nimage = None):
+    def __init__(self, RunType=None, Type=None,Nbeams=None, Ibeam=None, Nrays=None, alpha=None, deltas=None, box=None, epmult=None, rloop=None, Ibwin=None, Nimage = None):
         self.RunType = RunType
         self.Type = Type
         self.Nbeams =  Nbeams
@@ -120,7 +115,7 @@ class Beam:
         self.Nrays  =  Nrays
         self.alpha  =  alpha
         self.deltas =  deltas
-        self.Box    =  Box
+        self.box    =  box
         self.epmult =  epmult
         self.rloop  =  rloop
         self.Ibwin = Ibwin

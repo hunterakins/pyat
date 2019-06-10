@@ -2,8 +2,9 @@ import numpy as np
 from scipy.io import loadmat
 import os
 from struct import unpack
-from pyat.objects import *
+from .env import Source, Dom, Pos, cInt, Ice, SSPraw, SSP, HS, BotBndry, TopBndry, Bndry, Box, Beam, Modes
 import re
+from matplotlib import pyplot as plt
 
 
 def equally_spaced( x ):
@@ -102,7 +103,7 @@ class Empty():
     def __init__(self):
         return
 
-def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, *varargin ):
+def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, *varargin ):
     if (envfil == 'ENVFIL')  and (envfil[-4:] != '.env' ):
         envfil = envfil + '.env' # append extension
 
@@ -117,10 +118,10 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
 
     f.write('\'' + TitleEnv + '\' ! Title \r\n')
     f.write('{:8.2f}'.format(freq) +' \t \t \t ! Frequency (Hz) \r\n')
-    f.write('{:5d}'.format(SSP.NMedia)+ ' \t \t \t ! NMedia \r\n')
-    f.write('\'' + Bdry.Top.Opt + '\''+ ' \t \t \t ! Top Option \r\n')
+    f.write('{:5d}'.format(ssp.NMedia)+ ' \t \t \t ! NMedia \r\n')
+    f.write('\'' + bdry.Top.Opt + '\''+ ' \t \t \t ! Top Option \r\n')
 
-    if ( Bdry.Top.Opt[0] == 'A' ): # analytic boundary
+    if ( bdry.Top.Opt[0] == 'A' ): # analytic boundary
         f.write('     {:6.2f}'.format(ssp.depth[0]) + \
                     ' {:6.2f}'.format(bdry.Top.hs.alphaR) + \
                     ' {:6.2f}'.format(bdry.Top.hs.betaR) + \
@@ -131,58 +132,58 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
 
 
     # SSP
-    for medium in range(SSP.NMedia):
-        f.write('{:5d}'.format(SSP.N[ medium ]) + \
-                ' {:4.2f}'.format(SSP.sigma[ medium ]) + \
-                ' {:6.2f}'.format(SSP.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
-        for ii in range(len( SSP.raw[ medium].z )):
-            f.write('\t {:6.2f} '.format(SSP.raw[ medium ].z[ ii ]) + \
-                '{:6.2f} '.format(SSP.raw[ medium ].alphaR[ ii ]) + \
-                '{:6.2f} '.format(SSP.raw[ medium ].betaR[ ii ]) + \
-                '{:6.2g}'.format(SSP.raw[ medium ].rho[ ii ] ) +  \
-                ' {:10.6f} '.format(SSP.raw[ medium ].alphaI[ ii ]) + \
-                '{:6.2f} '.format(SSP.raw[ medium ].betaI[ ii ]) + \
+    for medium in range(ssp.NMedia):
+        f.write('{:5d}'.format(ssp.N[ medium ]) + \
+                ' {:4.2f}'.format(ssp.sigma[ medium ]) + \
+                ' {:6.2f}'.format(ssp.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
+        for ii in range(len( ssp.raw[ medium].z )):
+            f.write('\t {:6.2f} '.format(ssp.raw[ medium ].z[ ii ]) + \
+                '{:6.2f} '.format(ssp.raw[ medium ].alphaR[ ii ]) + \
+                '{:6.2f} '.format(ssp.raw[ medium ].betaR[ ii ]) + \
+                '{:6.2g}'.format(ssp.raw[ medium ].rho[ ii ] ) +  \
+                ' {:10.6f} '.format(ssp.raw[ medium ].alphaI[ ii ]) + \
+                '{:6.2f} '.format(ssp.raw[ medium ].betaI[ ii ]) + \
                 '/ \t ! z c cs rho \r\n')
 
     # lower halfspace
-    f.write('\''+Bdry.Bot.Opt + '\'' + ' {:6.2f}'.format(SSP.sigma[1]) + '  \t \t ! Bottom Option, sigma\r\n') # SSP.sigma( 2 ) )
+    f.write('\''+bdry.Bot.Opt + '\'' + ' {:6.2f}'.format(ssp.sigma[1]) + '  \t \t ! Bottom Option, sigma\r\n') # ssp.sigma( 2 ) )
 
     fmtr = {'float': lambda x: ' {:6.2f}\n'.format(float(x)), 'void': lambda x: ''}
     a = np.array([])
-    d = np.array([float(SSP.depth[SSP.NMedia])])
-    vls = [d, Bdry.Bot.hs.alphaR, Bdry.Bot.hs.betaR, Bdry.Bot.hs.rho, \
-                    Bdry.Bot.hs.alphaI, Bdry.Bot.hs.betaI]
+    d = np.array([float(ssp.depth[ssp.NMedia])])
+    vls = [d, bdry.Bot.hs.alphaR, bdry.Bot.hs.betaR, bdry.Bot.hs.rho, \
+                    bdry.Bot.hs.alphaI, bdry.Bot.hs.betaI]
     strings = [np.array2string(x, formatter = fmtr)[1:-1] for x in vls]
-    s = '  {:6.2f} '.format(SSP.depth[SSP.NMedia])
+    s = '  {:6.2f} '.format(ssp.depth[ssp.NMedia])
     for string in strings[1:]:
         s += string
-    if ( Bdry.Bot.Opt[0] == 'A' ):
-#        print('{:6.2f}'.format(Bdry.Bot.hs.betaI[0]))
+    if ( bdry.Bot.Opt[0] == 'A' ):
+#        print('{:6.2f}'.format(bdry.Bot.hs.betaI[0]))
         f.write('  ' + s + '  \t  / \t ! lower halfspace \r\n')
 
     if  model in  [ 'SCOOTER', 'KRAKEN', 'KRAKENC', 'SPARC' ]:
-        f.write('{:6.0f} '.format(cInt.Low) + '{:6.0f} \t \t ! cLow cHigh (m/s) \r\n'.format(cInt.High))   # phase speed limits
+        f.write('{:6.0f} '.format(cint.Low) + '{:6.0f} \t \t ! cLow cHigh (m/s) \r\n'.format(cint.High))   # phase speed limits
         f.write('{:8.2f} \t \t \t ! RMax (km) \r\n'.format(RMax ))    # maximum range
 
     # source depths
-    f.write('{:5d} \t \t \t \t ! NSD'.format(len( Pos.s.depth ) ))
+    f.write('{:5d} \t \t \t \t ! NSD'.format(len( pos.s.depth ) ))
 
-    if ( len( Pos.s.depth ) >= 2) and equally_spaced( Pos.s.depth ):
-        f.write('\r\n    {:6f'.format(Pos.s.depth[0]) +' {:6f '.format(Pos.depth[-1]))
+    if ( len( pos.s.depth ) >= 2) and equally_spaced( pos.s.depth ):
+        f.write('\r\n    {:6f} '.format(pos.s.depth[0]) +' {:6f} '.format(pos.s.depth[-1]))
     else:
-        f.write('\r\n    {:6f}  '.format( Pos.s.depth[0] ))
+        f.write('\r\n    {:6f}  '.format( pos.s.depth[0] ))
 
     f.write('/ \t ! SD(1)  ... (m) \r\n' )
 
     # receiver depths
 
-    f.write('{:5d} \t \t \t \t ! NRD'.format(len( Pos.r.depth ) ))
+    f.write('{:5d} \t \t \t \t ! NRD'.format(len( pos.r.depth ) ))
 
-    if ( len( Pos.r.depth ) >= 2) and equally_spaced( Pos.r.depth ) :
-        f.write('\r\n    {:6f} '.format(Pos.r.depth[0]) + '{:6f} '.format( Pos.r.depth[-1]))
+    if ( len( pos.r.depth ) >= 2) and equally_spaced( pos.r.depth ) :
+        f.write('\r\n    {:6f} '.format(pos.r.depth[0]) + '{:6f} '.format( pos.r.depth[-1]))
     else:
         f.write('\r\n    ')
-        for tmp_depth in Pos.r.depth:
+        for tmp_depth in pos.r.depth:
             f.write('{:6f} '.format(tmp_depth) )
 
     f.write('/ \t ! RD(1)  ... (m) \r\n' )
@@ -190,38 +191,38 @@ def write_env( envfil, model, TitleEnv, freq, SSP, Bdry, Pos, Beam, cInt, RMax, 
     # receiver ranges
     if (model ==  'BELLHOP' ) or  (model == 'FirePE' ) :
         # receiver ranges
-        f.write('{:5d} \t \t \t \t ! NRR'.format(len( Pos.r.range ) ))
+        f.write('{:5d} \t \t \t \t ! NRR'.format(len( pos.r.range ) ))
         
-        if ( len( Pos.r.range ) >= 2) and equally_spaced( Pos.r.range ) :
-            f.write('\r\n    {:6f} '.format(Pos.r.range[0]) + '{:6f} '.format(Pos.r.range[-1]))
+        if ( len( pos.r.range ) >= 2) and equally_spaced( pos.r.range ) :
+            f.write('\r\n    {:6f} '.format(pos.r.range[0]) + '{:6f} '.format(pos.r.range[-1]))
         else:
-            f.write('\r\n    {:6f}  '.format(Pos.r.range[0] ))
+            f.write('\r\n    {:6f}  '.format(pos.r.range[0] ))
         f.write('/ \t ! RR(1)  ... (km) \r\n' )
-        write_bell(f, Beam )
+        write_bell(f, beam )
 
     f.close()
 
-def write_bell(f, Beam):
-    f.write('\''+Beam.RunType+'\''+ ' \t \t \t \t ! Run Type \r\n');
+def write_bell(f, beam):
+    f.write('\''+beam.RunType+'\''+ ' \t \t \t \t ! Run Type \r\n');
 
-    if (Beam.Ibeam != None):
-        f.write('{:<i}'.format(Beam.Nbeams)+'{:<i}'.format(Beam.Ibeam) +' \t \t \t \t ! Nbeams Ibeam \r\n');
+    if (beam.Ibeam != None):
+        f.write('{:<i}'.format(beam.Nbeams)+'{:<i}'.format(beam.Ibeam) +' \t \t \t \t ! Nbeams Ibeam \r\n');
     else:
-        # if this is a ray trace run and the field Beam.Nrays exists to use
+        # if this is a ray trace run and the field beam.Nrays exists to use
         # fewer rays in the trace, then use that
-        if ( (Beam).RunType[0 ] == 'R') and (Beam.Nrays != None):
-            f.write('{:d}'.format(Beam.Nrays) +' \t \t \t \t \t ! Nbeams \r\n');
+        if ( (beam).RunType[0 ] == 'R') and (beam.Nrays != None):
+            f.write('{:d}'.format(beam.Nrays) +' \t \t \t \t \t ! Nbeams \r\n');
         else:
-            f.write('{:d}'.format(Beam.Nbeams )+'\t \t \t \t \t ! Nbeams \r\n')
+            f.write('{:d}'.format(beam.Nbeams )+'\t \t \t \t \t ! Nbeams \r\n')
 
 
-    f.write('{:f}'.format( Beam.alpha[ 0 ])+' {:f} '.format(Beam.alpha[ -1 ])+'/ \t \t ! angles (degrees) \r\n');
-    f.write('{:f}'.format(Beam.deltas)+' {:f}'.format(Beam.Box.z)+' {:f}'.format(Beam.Box.r)+'\t ! deltas (m) Box.z (m) Box.r (km) \r\n');
+    f.write('{:f}'.format( beam.alpha[ 0 ])+' {:f} '.format(beam.alpha[ -1 ])+'/ \t \t ! angles (degrees) \r\n');
+    f.write('{:f}'.format(beam.deltas)+' {:f}'.format(beam.Box.z)+' {:f}'.format(beam.Box.r)+'\t ! deltas (m) Box.z (m) Box.r (km) \r\n');
 
 # Cerveny-style Gaussian beams
-    if ( len( Beam.RunType ) > 1) and ( 'GBS' not in Beam.RunType[1:1] ) :
-        f.write('\''+Beam.Type[0:1]+'\''+' {:f}'.format(Beam.epmult)+' {:f}'.format(Beam.rLoop )+' \t \t ! ''Min/Fill/Cer, Sin/Doub/Zero'' Epsmult RLoop (km) \r\n')
-        f.write('{:d}'.format(Beam.Nimage)+' {:d}'.format(Beam.Ibwin)+'  \t \t \t \t ! Nimage Ibwin \r\n')
+    if ( len( beam.RunType ) > 1) and ( 'GBS' not in Beam.RunType[1:1] ) :
+        f.write('\''+beam.Type[0:1]+'\''+' {:f}'.format(Beam.epmult)+' {:f}'.format(Beam.rLoop )+' \t \t ! ''Min/Fill/Cer, Sin/Doub/Zero'' Epsmult RLoop (km) \r\n')
+        f.write('{:d}'.format(beam.Nimage)+' {:d}'.format(Beam.Ibwin)+'  \t \t \t \t ! Nimage Ibwin \r\n')
 
 def read_shd_bin(*varargin):
     s = Source(0)
@@ -443,24 +444,24 @@ def read_shd (*varargin ):
     ##
     if FileType in ['shd', 'grn' ]:   # binary format
         if len(varargin) ==  1:
-            [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] = read_shd_bin( filename )
+            [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_shd_bin( filename )
         if len(varargin) ==  2:
-            [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] = read_shd_bin( filename, freq )
+            [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_shd_bin( filename, freq )
         if len(varargin) ==  3:
-            [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] = read_shd_bin( filename, xs, ys )
+            [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_shd_bin( filename, xs, ys )
     elif FileType ==  'shdmat':  # Shade function mat file
         loadmat( filename )
 
         # has a specific source xs, ys been given?
         if not np.isnan( xs ):
-            xdiff = abs( Pos.s.x - xs * 1000. )
+            xdiff = abs( pos.s.x - xs * 1000. )
             [ holder, idxX ] = min( xdiff )
-            ydiff = abs( Pos.s.y - ys * 1000. )
+            ydiff = abs( pos.s.y - ys * 1000. )
             [ holder, idxY ] = min( ydiff )
 
             # extract the appropriate source index
             pressureT = pressure[ idxX, idxY, :, :, :, : ]
-            pressure = np.reshape( pressureT, [ Pos.Nsd, Pos.Nrd, Pos.Ntheta, Pos.Nrr ] )
+            pressure = np.reshape( pressureT, [ pos.Nsd, pos.Nrd, pos.Ntheta, pos.Nrr ] )
 
         # has a specific frequency been given?
         if not np.isnan( freq ):
@@ -470,14 +471,14 @@ def read_shd (*varargin ):
             pressure = pressure[ ifreq, 1, :, : ]
 
     elif FileType ==  'asc': # ascii format
-        [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] = read_shd_asc( filename )
+        [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_shd_asc( filename )
 
     elif FileType ==  'grnmat':   # Green's function mat file
         loadmat( filename )
-        Pos.r.range = Pos.r.range.T;   # make it a column vector to match read_shd_bin
+        pos.r.range = pos.r.range.T;   # make it a column vector to match read_shd_bin
 
     elif FileType ==  'RAM':
-        [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] = read_ram_tlgrid
+        [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_ram_tlgrid
     else:
         raise ValueError( 'Unrecognized file extension' )
 
@@ -485,7 +486,7 @@ def read_shd (*varargin ):
     # nchars = strfind( PlotTitle, '''' );   # find quotes
     # PlotTitle = [ PlotTitle( nchars( 1 ) + 1 : nchars( 2 ) - 1 ) ]
 
-    return [ PlotTitle, PlotType, freqVec, atten, Pos, pressure ] 
+    return [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] 
 
 
 ''' 
@@ -894,11 +895,6 @@ def  read_env( envfil, model ):
    
     if ( model == 'BELLHOP3D' ) :
         raise ValueError("Bellhop 3d not supported atm")
-#        [ sx, sy, Nsx, Nsy ] = readsxsy( fid ) 
-#        Pos.s.x = sx 
-#        Pos.s.y = sy 
-#        Pos.Nsx = Nsx 
-#        Pos.Nsy = Nsy 
 
     # !!! check: does this delete Pos.s.x, etc. when executed
     [pos, line_ind] = readsdrd(lines, line_ind)                            # read in the source and receiver depths
@@ -915,7 +911,7 @@ def  read_env( envfil, model ):
 #        Pos.Ntheta  = length( Pos.theta ) 
 #        Beam        = read_bell( fid, Bdry, freq, Bdry.Bot.depth, Bdry.Top.depth, Pos.r.range( end ) ) 
     else:   # dummy value for models that don't use Beam parameters
-        beam = Beam('CG', Nbeams=0, alpha= [-15,15], Box=Box(1.05*RMax, 1.05*np.max(pos.r.depth)), deltas = 0) 
+        beam = Beam('CG', Nbeams=0, alpha= [-15,15], box=Box(1.05*RMax, 1.05*np.max(pos.r.depth)), deltas = 0) 
         pos.r.range     = np.linspace( 0, RMax, 501 )    # set up receiver range vector
     return  [ TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax]
 
@@ -1095,22 +1091,3 @@ def read_modes(**kwargs):
             modes_k = np.array([modes_k[i] for i in modes], dtype=np.complex64)  # take the subset that the user specified
     modes = Modes(M, modes_k, z, modes_phi, top, bot, N, Mater, Nfreq, Nmedia, depth, rho, freqVec)
     return modes
-
-if __name__ == '__main__':
-    print('Running test for env files')
-    [title, freq, ssp, bdry, pos, beam, cint, RMax] = read_env('test/krak_test/py_env.env', 'KRAKEN')
-    a = np.linspace(0, 150, 100)
-    plt.plot(a,ssp.sspf(a))
-    plt.show()
-
-
-   # [title, freq, ssp, bdry, pos, beam, cInt, RMax] = read_env('test/bellhop_test/py_env.env', 'BELLHOP')
-   # a = np.linspace(0, 5000, 100)
-   # plt.plot(a,ssp.sspf(a))
-   # plt.show()
-
-    [title, freq, ssp, bdry, pos, beam, cint, RMax] = read_env('test/bellhop_test/swellex.env', 'KRAKEN')
-    a = np.linspace(0, 1040, 100)
-    plt.plot(a, ssp.sspf(a))
-    plt.show()
-    
