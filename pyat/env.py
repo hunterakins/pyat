@@ -139,26 +139,55 @@ class Env:
             self.rho_f = interp1d(self.rho_depths, self.rho_vals)
 
 class Field:
-    def __init__(self, Pos, greens_mat, omega):
-        self.Pos = Pos
-        self.greens = greens_mat
-        self.omega = omega # a list of frequencies
+    def __init__(self, **kwargs):
+        self.pos = kwargs['pos']
+        self.greens = kwargs['pressure']
+        self.freq = kwargs['freq'] # a list of frequencies
+
+    def contour(self):
+        shape = np.shape(self.greens)
+        if len(shape) > 2:
+            raise ValueError("Field object is too high dimensional, try multi_contour")
+        pos = self.pos 
+        ax = plt.contourf(pos.r.range, -pos.r.depth, np.log10(abs(self.greens.real)))
+        return ax
+
+    def multi_contour(self):
+        print('not implemented, maybe one day...')
 
 class Modes:
-    def __init__(self, M, k, z, phi, Top, Bot, N, Mater, Nfreq, Nmedia, depth, rho, freqvec):
-        self.M = M
-        self.k = k
-        self.z = z
-        self.phi = phi
-        self.Top = Top
-        self.Bot = Bot
-        self.N = N
-        self.Nfreq = Nfreq
-        self.Nmedia = Nmedia
-        self.depth = depth
-        self.rho = rho
-        self.freqvec = freqvec
+    def __init__(self, **kwargs):
+        self.M = kwargs['M']
+        self.k = kwargs['modes_k']
+        self.z = kwargs['z']
+        self.phi = kwargs['modes_phi']
+        self.top = kwargs['top']
+        self.bot = kwargs['bot']
+        self.N = kwargs['N']
+        self.Nfreq = kwargs['Nfreq']
+        self.Nmedia = kwargs['Nmedia']
+        self.depth = kwargs['depth']
+        self.rho = kwargs['rho']
+        self.freqvec = kwargs['freqVec']
+        self.init_dict = kwargs
 
+    def get_excited_modes(self, sd, threshold):
+        '''
+        return an array of modes that are excited by a source at sd meters depth
+        threshold 
+        
+        also populate some structures in moded caled excited_phi and excited_k
+
+        '''
+        if sd not in self.z:
+            raise ValueError("sd not in the depth array, are you sure it's the right depth you're passing?")
+        depth_ind = [i for i in range(len(self.z)) if self.z[i] == sd][0]
+        vals = self.phi[depth_ind,:]
+        const = np.max(abs(vals)) 
+        filtered_inds = [i for i in range(len(self.k)) if abs(self.phi[depth_ind, i]) / const > threshold]
+        self.excited_phi = self.phi[:, filtered_inds]
+        self.excited_k = self.k[filtered_inds]
+        return self.excited_phi, self.excited_k
 
 class KernInput:
     def __init__(self, Field_r, Field_s, env):

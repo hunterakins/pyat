@@ -51,8 +51,8 @@ def write_fieldflp(flpfil, Option, Pos):
         f.write('{:5d}'.format(len(Pos.s.depth))+'\t \t \t \t ! NSD')
 
         if ( len( Pos.s.depth ) > 2 and equally_spaced( Pos.s.depth ) ):
-            f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ 1 ]+'  '))
-            f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ -1 ]+'  '))
+            f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ 1 ])+'  ')
+            f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ -1 ])+'  ')
         elif len(Pos.s.depth) == 1:
             f.write( '\r\n    '+ '{:6f}'.format(Pos.s.depth[0])+'  ')
         else:
@@ -105,6 +105,7 @@ class Empty():
 
 def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, *varargin ):
     if (envfil == 'ENVFIL')  and (envfil[-4:] != '.env' ):
+        print('appending')
         envfil = envfil + '.env' # append extension
 
     if ( len( varargin ) == 0 ):
@@ -1089,5 +1090,7 @@ def read_modes(**kwargs):
             ki = np.array([k[i+1] for i in range(0,2*M,2)])
             modes_k = kr+ complex(0,1) * ki
             modes_k = np.array([modes_k[i] for i in modes], dtype=np.complex64)  # take the subset that the user specified
-    modes = Modes(M, modes_k, z, modes_phi, top, bot, N, Mater, Nfreq, Nmedia, depth, rho, freqVec)
+
+    input_dict = {'M':M, 'modes_k': modes_k, 'z':z, 'modes_phi':modes_phi, 'top':top, 'bot':bot, 'N':N, 'Mater':Mater, 'Nfreq': Nfreq, 'Nmedia': Nmedia, 'depth':depth, 'rho':rho, 'freqVec':freqVec}
+    modes = Modes(**input_dict)
     return modes
