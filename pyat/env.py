@@ -17,9 +17,11 @@ class Source:
         self.y = None
 
 class Dom:
-    def __init__(self, ran, depth):
+    def __init__(self, ran, depth, offsets=None):
         self.range = ran # in km
         self.depth = depth
+        if offsets is not None:
+            self.offsets = offsets
 
 class Pos:
     def __init__(self, Source, Dom):

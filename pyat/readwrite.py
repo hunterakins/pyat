@@ -77,13 +77,20 @@ def write_fieldflp(flpfil, Option, Pos):
         f.write( '/ \t ! RD(1)  ... (m) \r\n' )
 
         # receiver range offsets
-
         f.write( '{:5}'.format(len( Pos.r.depth ))+' \t \t ! NRR',  )
-        f.write( '\r\n    '+'{:6.2f}'.format(0.0) +'  ')
-        f.write( '\r\n    '+'{:6.2f}'.format(0.0) +'  ')
+        if not hasattr(Pos.r, 'offsets'):
+            f.write( '\r\n    '+'{:6.2f}'.format(0.0) +'  ') # just zeros
+        else:
+            if ( len( Pos.r.offsets) > 2 and equally_spaced( Pos.r.offsets ) ):
+                f.write( '\r\n    '+'{:6f}'.format(Pos.r.offsets[1])+'  ')
+                f.write( '\r\n    '+'{:6f}'.format(Pos.r.offsets[-1])+'  ')
+            elif (len(Pos.r.offsets) == 1):
+                f.write( '\r\n    '+'{:6f}'.format(Pos.r.offsets[0])+'  ')
+            else:
+                for i in range(len(Pos.r.offsets)):
+                    f.write( '\r\n    '+'{:6f}'.format(Pos.r.offsets[i]))
         f.write( '/ \t \t ! RR(1)  ... (m) \r\n' )
     return
-
 
 def fileparts(fname):
     fpath = os.path.dirname(os.path.abspath(fname))
@@ -218,7 +225,7 @@ def write_bell(f, beam):
 
 
     f.write('{:f}'.format( beam.alpha[ 0 ])+' {:f} '.format(beam.alpha[ -1 ])+'/ \t \t ! angles (degrees) \r\n');
-    f.write('{:f}'.format(beam.deltas)+' {:f}'.format(beam.Box.z)+' {:f}'.format(beam.Box.r)+'\t ! deltas (m) Box.z (m) Box.r (km) \r\n');
+    f.write('{:f}'.format(beam.deltas)+' {:f}'.format(beam.box.z)+' {:f}'.format(beam.box.r)+'\t ! deltas (m) box.z (m) box.r (km) \r\n');
 
 # Cerveny-style Gaussian beams
     if ( len( beam.RunType ) > 1) and ( 'GBS' not in Beam.RunType[1:1] ) :
