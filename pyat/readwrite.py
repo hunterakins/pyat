@@ -20,10 +20,26 @@ def equally_spaced( x ):
         return 0
 
 # Write a field-parameters file
-def write_fieldflp(flpfil, Option, Pos):
+def write_fieldflp(flpfil, Option, Pos, **kwargs):
     if flpfil[-4:] != '.flp':
         flpfil = flpfil + '.flp'
 
+    if 'scooter' in kwargs.keys():
+        with open(flpfil, 'w') as f:
+            f.write('\'' + '{:4}'.format(Option) + ' \'' + ' ! Option \r\n')
+            f.write('{:5d}'.format(len(Pos.r.range)) + ' \t \t \t \t ! NRR')
+            if ( len( Pos.r.range ) > 2) and equally_spaced( Pos.r.range ):
+                f.write('\r\n    ' + '{:6f}'.format(Pos.r.range[0]))
+                f.write('\r\n    ' + '{:6f}'.format(Pos.r.range[-1]))
+            elif len(Pos.r.range) == 1:
+                f.write('\r\n    ' + '{:6f}'.format(Pos.r.range[0]) + '  ')
+            else:
+                for i in range(len(Pos.r.range)):
+                    f.write('\r\n    ' + '{:6f}'.format(Pos.r.range[i]) + '  ')
+                
+
+            f.write( '/ \t ! RR(1)  ... (km) \r\n' )
+        return
     with open(flpfil, 'w') as f:
         f.write('/ ! Title \r\n' )
         f.write('\'' + '{:4}'.format(Option) + ' \'' + ' ! Option \r\n')
@@ -307,13 +323,16 @@ def read_shd_bin(*varargin):
 
     f.seek(7 * 4 * recl); #reposition to end of record 7
     pos.s.depth = unpack(str(Nsd)+'f', f.read(Nsd*4))
+    pos.s.depth = np.array(pos.s.depth)
 
     f.seek(8 * 4 * recl); #reposition to end of record 8
     pos.r.depth = unpack(str(Nrd) + 'f', f.read(Nrd*4))
+    pos.r.depth = np.array(pos.r.depth)
 
     f.seek(9 * 4 * recl); #reposition to end of record 9
     pos.r.range = unpack(str(Nrr) + 'f',f.read(Nrr*4))
     # pos.r.range = pos.r.range';   # make it a row vector
+    pos.r.range = np.array(pos.r.range)
 
     ##
     # Each record holds data from one source depth/receiver depth pair
@@ -483,7 +502,7 @@ def read_shd (*varargin ):
 
     elif FileType ==  'grnmat':   # Green's function mat file
         loadmat( filename )
-        pos.r.range = pos.r.range.T;   # make it a column vector to match read_shd_bin
+        pos.r.range = np.array(pos.r.range.T);   # make it a column vector to match read_shd_bin
 
     elif FileType ==  'RAM':
         [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_ram_tlgrid
