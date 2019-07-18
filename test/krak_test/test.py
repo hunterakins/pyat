@@ -3,8 +3,8 @@ import sys
 sys.path.append("../")
 from os import system
 from matplotlib import pyplot as plt
-from pyat.objects import *
-from pyat.readwrite import *
+from pyat.pyat.env import *
+from pyat.pyat.readwrite import *
 
 
 
@@ -19,8 +19,8 @@ cw		=	1500
 pw		=	1
 aw		=	0
 cb		=	1600
-pb		=	1.5
-ab		=	0.5
+pb		=	1.8
+ab		=	0.2
 
 s = Source(sd)
 r = Dom(X, Z)
@@ -30,6 +30,7 @@ pos.r.depth	 = Z
 pos.r.range		=	X
 pos.Nsd = 1
 pos.Nrd = len(rd)
+
 
 
 
@@ -64,6 +65,7 @@ N			=	[0, 0]
 sigma		=	[0, 0]	
 raw[0]
 ssp = SSP(raw, depth, 2, Opt, N, sigma)
+ssp.make_sspf()
 
 hs = HS()
 Opt = 'A~'

@@ -3,8 +3,8 @@ import sys
 sys.path.append("../")
 from os import system
 from matplotlib import pyplot as plt
-from pyat.objects import *
-from pyat.readwrite import *
+from pyat.pyat.env import *
+from pyat.pyat.readwrite import *
 
 
 
@@ -77,7 +77,7 @@ class Empty:
 
 low = 1400
 high = 1e9
-cInt = CInt(low, high)
+cInt = cInt(low, high)
 RMax = max(X)
 freq = 50
 
@@ -87,7 +87,7 @@ nbeams = 100
 alpha = np.linspace(-20,20, 100)
 box = Box(100, 5500)
 deltas=0
-beam = Beam(RunType=run_type, Nbeams=nbeams, alpha=alpha,Box=box,deltas=deltas)
+beam = Beam(RunType=run_type, Nbeams=nbeams, alpha=alpha,box=box,deltas=deltas)
 
 write_env('py_env.env', 'BELLHOP', 'Pekeris profile', freq, ssp, bdy, pos, beam, cInt, RMax)
   
