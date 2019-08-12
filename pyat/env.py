@@ -63,7 +63,6 @@ class SSP:
             self.ssp_vals = np.zeros((len(self.depth), 1))
             if self.NMedia == 2:
                 layer_depth = self.raw[0].z[-1]
-                print('ld', layer_depth)
                 self.sspf = lambda z: np.piecewise(z, [z<layer_depth, z>=layer_depth], [lambda z: self.raw[0].sspf(z), lambda z: self.raw[1].sspf(z)])
             elif self.NMedia == 3:
                 layer_depth_one = self.raw[0].z[-1]
@@ -161,17 +160,18 @@ class Modes:
     def __init__(self, **kwargs):
         self.M = kwargs['M']
         self.k = kwargs['modes_k']
-        self.z = kwargs['z']
+        self.z = np.array(kwargs['z'])
         self.phi = kwargs['modes_phi']
         self.top = kwargs['top']
         self.bot = kwargs['bot']
-        self.N = kwargs['N']
+        self.N = kwargs['N'] 
         self.Nfreq = kwargs['Nfreq']
         self.Nmedia = kwargs['Nmedia']
         self.depth = kwargs['depth']
         self.rho = kwargs['rho']
         self.freqvec = kwargs['freqVec']
         self.init_dict = kwargs
+        self.num_modes = self.M # easier to remember
 
     def get_excited_modes(self, sd, threshold):
         '''
@@ -190,6 +190,20 @@ class Modes:
         self.excited_phi = self.phi[:, filtered_inds]
         self.excited_k = self.k[filtered_inds]
         return self.excited_phi, self.excited_k
+
+    def plot(self):
+        figs = []
+        if self.M > 5:
+            for i in range(self.M):
+                fig = plt.figure(i)
+                plt.plot(self.phi[:,i], -self.z)
+                figs.append(fig)
+        return figs
+
+    def __repr__(self):
+        return 'Modes object with ' + str(self.M) + ' distinct modes'
+                
+        
 
 class KernInput:
     def __init__(self, Field_r, Field_s, env):
