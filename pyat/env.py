@@ -38,16 +38,24 @@ class SSPraw:
     def __init__(self,z, alphaR, betaR, rho, alphaI, betaI):
         self.z = z
         self.alphaR = alphaR # sound speed in array
-        self.betaR = betaR # not sure
+        self.betaR = betaR # shear wave speed
         self.rho = rho 
         self.alphaI = alphaI # atten. in array (alpha (z))
-        self.betaI = betaI     
+        self.betaI = betaI # shear attenuation
 
     def make_sspf(self):
         self.sspf = interp1d(self.z, self.alphaR)
 
+    def interp_all(self):
+        self.betaI_f = interp1d(self.z, self.betaI)
+        self.betaR_f = interp1d(self.z, self.betaR)
+        self.rho_f = interp1d(self.z, self.rho)
+        self.alphaR_f = interp1d(self.z, self.alphaR)
+        self.alphaI_f = interp1d(self.z, self.alphaI)
+        return self.alphaR_f, self.betaR_f, self.rho_f, self.alphaI_f, self.betaI_f
+
 class SSP:
-    def __init__(self, raw, depth, NMedia, Opt=None, N=None, sigma=None):
+    def __init__(self, raw, depth, NMedia, Opt=None, N=None, sigma=0):
         self.NMedia	= NMedia # number of media layers
         self.Opt = Opt # option: not sure what this is for
         self.N			=	N	 # array with num points in each layer
@@ -83,8 +91,6 @@ class HS:
         self.alphaI = np.array(alphaI)
         self.betaI = np.array(betaI)
         
-
-
 class BotBndry:
     def __init__(self, Opt, Hs, depth=[], betaI=[0], ):
         self.Opt = Opt # 'A' for analytic or 'CVW' for interpolated ssp
