@@ -67,7 +67,7 @@ def write_fieldflp(flpfil, Option, Pos, **kwargs):
         f.write('{:5d}'.format(len(Pos.s.depth))+'\t \t \t \t ! NSD')
 
         if ( len( Pos.s.depth ) > 2 and equally_spaced( Pos.s.depth ) ):
-            f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ 1 ])+'  ')
+            f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ 0 ])+'  ')
             f.write('\r\n    '+'{:6f}'.format(Pos.s.depth[ -1 ])+'  ')
         elif len(Pos.s.depth) == 1:
             f.write( '\r\n    '+ '{:6f}'.format(Pos.s.depth[0])+'  ')
@@ -82,7 +82,7 @@ def write_fieldflp(flpfil, Option, Pos, **kwargs):
         f.write('{:5}'.format(len(Pos.r.depth)) + ' \t \t \t \t ! NRD')
     
         if ( len( Pos.r.depth ) > 2 and equally_spaced( Pos.r.depth ) ):
-            f.write( '\r\n    '+'{:6f}'.format(Pos.r.depth[1])+'  ')
+            f.write( '\r\n    '+'{:6f}'.format(Pos.r.depth[0])+'  ')
             f.write( '\r\n    '+'{:6f}'.format(Pos.r.depth[-1])+'  ')
         elif (len(Pos.r.depth) == 1):
             f.write( '\r\n    '+'{:6f}'.format(Pos.r.depth[0])+'  ')
@@ -180,10 +180,13 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
     strings = [np.array2string(x, formatter = fmtr)[1:-1] for x in vls]
     s = '  {:6.2f} '.format(ssp.depth[ssp.NMedia])
     for string in strings[1:]:
+        if string == '':
+            string = ' 0.00'
         s += string
+    print(s)
     if ( bdry.Bot.Opt[0] == 'A' ):
 #        print('{:6.2f}'.format(bdry.Bot.hs.betaI[0]))
-        f.write('  ' + s + '  \t  / \t ! lower halfspace \r\n')
+        f.write('   ' + s + '  \t  / \t ! lower halfspace \r\n')
 
     if  model in  [ 'SCOOTER', 'KRAKEN', 'KRAKENC', 'SPARC' ]:
         f.write('{:6.0f} '.format(cint.Low) + '{:6.0f} \t \t ! cLow cHigh (m/s) \r\n'.format(cint.High))   # phase speed limits
@@ -395,7 +398,6 @@ def read_shd_bin(*varargin):
                     pressure[ itheta, isd, ird, : ] = temp[ 1 : 2 : 2 * Nrr ] + complex(0,1) * np.array(temp[ 2 : 2 : 2 * Nrr ])
                     # Transmission loss matrix indexed by  theta x sd x rd x rr
                     
-
     f.close()
     return [ title, PlotType, freqVec, atten, pos, pressure ] 
 
@@ -512,7 +514,6 @@ def read_shd (*varargin ):
     # clean up PlotTitle by taking only the part up inside the quotes
     # nchars = strfind( PlotTitle, '''' );   # find quotes
     # PlotTitle = [ PlotTitle( nchars( 1 ) + 1 : nchars( 2 ) - 1 ) ]
-
     return [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] 
 
 
