@@ -127,7 +127,7 @@ class Empty():
         return
 
 def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, *varargin ):
-    if (envfil == 'ENVFIL')  and (envfil[-4:] != '.env' ):
+    if (envfil[-4:] != '.env' ):
         print('appending')
         envfil = envfil + '.env' # append extension
 
@@ -183,7 +183,6 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
         if string == '':
             string = ' 0.00'
         s += string
-    print(s)
     if ( bdry.Bot.Opt[0] == 'A' ):
 #        print('{:6.2f}'.format(bdry.Bot.hs.betaI[0]))
         f.write('   ' + s + '  \t  / \t ! lower halfspace \r\n')
@@ -991,7 +990,6 @@ def read_modes(**kwargs):
         freq = kwargs['freq']
     if 'modes' in kwargs.keys():
         modes = kwargs['modes']
-        
     with open(filename, 'rb') as f:
         iRecProfile = 1;   # (first time only)
         
