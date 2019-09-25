@@ -197,6 +197,24 @@ class Modes:
         self.excited_k = self.k[filtered_inds]
         return self.excited_phi, self.excited_k
 
+    def remove_source_pos(self, sd):
+        if sd not in self.z:
+            return
+        else:
+            print('removing source')    
+            sind = np.argmin([abs(x - sd) for x in self.z])
+            new_pos_len = len(self.z) - 1
+            new_phi = np.zeros((new_pos_len, self.num_modes), dtype=self.phi.dtype)
+            new_phi[:sind, :] = self.phi[:sind, :]
+            new_phi[sind:,:] = self.phi[sind+1:,:]
+            self.phi = new_phi
+            new_z = np.zeros((new_pos_len), dtype=self.z.dtype)
+            new_z[:sind] = self.z[:sind]
+            new_z[sind:] = self.z[sind+1:]
+            self.z = new_z
+            return 
+            
+
     def plot(self):
         figs = []
         if self.M > 5:
