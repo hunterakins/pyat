@@ -12,7 +12,7 @@ sd	=	30
 rd = [94.125, 99.755, 105.38, 111.00, 116.62, 122.25, 127.88, 139.12, 144.74, 150.38, 155.99, 161.62, 167.26, 172.88, 178.49, 184.12, 189.76, 195.38, 200.99, 206.62, 212.25]
 rr	=	2.5
 
-Z = np.arange(0, 150.5, .5)
+Z = np.arange(.5, 150.5, .5)
 X = np.arange(0, 10, .01)
 
 cw		=	1500
@@ -66,7 +66,8 @@ raw[0]
 ssp = SSP(raw, depth, 2, Opt, N, sigma)
 ssp.make_sspf()
 
-hs = HS()
+
+hs = HS(alphaR=cb, betaR=0, rho = pb, alphaI=ab, betaI=0)
 Opt = 'A~'
 bottom = BotBndry(Opt, hs)
 top = TopBndry('CVW')
@@ -84,30 +85,27 @@ cInt.High = 1e9
 cInt.Low = 1400
 RMax = max(X)
 freq = 50
-write_env('py_env.env', 'KRAKEN', 'Pekeris profile', freq, ssp, bdy, pos, [], cInt, RMax)
+write_env('py_env.env', 'SCOOTER', 'Pekeris profile', freq, ssp, bdy, pos, [], cInt, RMax)
   
 s = Source([sd])
 ran =  np.arange(.1,10, 10/1e3)
-depth = np.arange(0,150,1)
+depth = np.array([]) # doesn't matter for scooter
 r = Dom(ran, depth)
 
 pos = Pos(s, r)
 options = {'scooter': True}
 write_fieldflp('py_env', 'RP', pos, **options)
 
-
+print(pos.r.depth)
+print(pos.r.range)
 system("/home/hunter/Downloads/at/bin/scooter.exe py_env")
 system("/home/hunter/Downloads/at/bin/fields.exe py_env")
 [x,x,freq,x,Pos1,pressure]= read_shd('py_env.shd')
-# fourier transform the grns function
+print(Pos1.r.depth)
+print(Pos1.r.range)
 pressure = abs(pressure)
 pressure = np.squeeze(pressure)
-print(np.shape(pressure))
-print(pressure)
-plt.plot(pressure[10,:])
-plt.plot(pressure[70,:])
-plt.plot(pressure[90,:])
-plt.show()
+pressure = 10*np.log10(pressure/np.max(pressure))
 levs = np.linspace(np.min(pressure), np.max(pressure), 20)
 plt.contourf(Pos1.r.range, Pos1.r.depth,pressure[:,:],levels=levs)
 plt.gca().invert_yaxis()

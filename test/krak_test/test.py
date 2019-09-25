@@ -67,7 +67,7 @@ raw[0]
 ssp = SSP(raw, depth, 2, Opt, N, sigma)
 ssp.make_sspf()
 
-hs = HS()
+hs = HS(alphaR=cb, betaR=0, rho = pb, alphaI=ab, betaI=0)
 Opt = 'A~'
 bottom = BotBndry(Opt, hs)
 top = TopBndry('CVW')
@@ -97,6 +97,12 @@ pos = Pos(s, r)
 
 write_fieldflp('py_env', 'R', pos)
 system("/home/hunter/Downloads/at/bin/kraken.exe py_env")
+fname = 'py_env.mod'
+options = {'fname':fname, 'freq':0}
+modes = read_modes(**options)
+print(modes)
+figs = modes.plot()
+plt.show()
 system("/home/hunter/Downloads/at/bin/field.exe py_env")
 [x,x,x,x,Pos1,pressure]= read_shd('py_env.shd')
 #pressure = np.squeeze(pressure)
