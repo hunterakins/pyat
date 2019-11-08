@@ -7,6 +7,15 @@ import re
 from matplotlib import pyplot as plt
 
 
+""" 
+    translation of basic read functions from Mike Porter's 
+    Matlab ReadWrite folder
+
+    Currently lacking bellhop support (just need to translate read_bell)
+    and bellhop3d (need to translate readsxrx)
+"""
+
+
 def equally_spaced( x ):
     # routine to see if the vector x is composed of roughly equally spaced
     # values
@@ -172,12 +181,12 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
     # lower halfspace
     f.write('\''+bdry.Bot.Opt + '\'' + ' {:6.2f}'.format(ssp.sigma[1]) + '  \t \t ! Bottom Option, sigma\r\n') # ssp.sigma( 2 ) )
 
-    fmtr = {'float': lambda x: ' {:6.2f}\n'.format(float(x)), 'void': lambda x: ''}
+    fmtr = {'all': lambda x: ' {:6.2f}'.format(float(x))}#, 'void': lambda x: ''}
     a = np.array([])
     d = np.array([float(ssp.depth[ssp.NMedia])])
     vls = [d, bdry.Bot.hs.alphaR, bdry.Bot.hs.betaR, bdry.Bot.hs.rho, \
                     bdry.Bot.hs.alphaI, bdry.Bot.hs.betaI]
-    strings = [np.array2string(x, formatter = fmtr)[1:-1] for x in vls]
+    strings = [np.array2string(x, formatter = fmtr) for x in vls]
     s = '  {:6.2f} '.format(ssp.depth[ssp.NMedia])
     for string in strings[1:]:
         if string == '':
@@ -514,15 +523,6 @@ def read_shd (*varargin ):
     # nchars = strfind( PlotTitle, '''' );   # find quotes
     # PlotTitle = [ PlotTitle( nchars( 1 ) + 1 : nchars( 2 ) - 1 ) ]
     return [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] 
-
-
-''' 
-    translation of basic read functions from Mike Porter's 
-    Matlab ReadWrite folder
-
-    Currently lacking bellhop support (just need to translate read_bell)
-    and bellhop3d (need to translate readsxrx)
-'''
 
 def crci( c, alpha, freq, AttenUnit ):
     '''
@@ -1119,3 +1119,100 @@ def read_modes(**kwargs):
     input_dict = {'M':M, 'modes_k': modes_k, 'z':z, 'modes_phi':modes_phi, 'top':top, 'bot':bot, 'N':N, 'Mater':Mater, 'Nfreq': Nfreq, 'Nmedia': Nmedia, 'depth':depth, 'rho':rho, 'freqVec':freqVec}
     modes = Modes(**input_dict)
     return modes
+
+def my_float(x):
+    if x == 'nan' or x == 'NaN':
+        return np.nan
+    else:
+        return float(x)
+
+def read_arrivals_asc(fname, narrmx=200):
+#function [ Arr, Pos ] = read_arrivals_asc( ARRFile, Narrmx )
+
+# Read the arrival time/amplitude data computed by BELLHOP
+#
+# usage:
+#[ Arr, Pos ] = read_arrivals_asc( ARRFile, Narrmx );
+#
+# Arr is a structure containing all the arrivals information
+# Pos is a structure containing the positions of source and receivers
+#
+# ARRFile is the name of the Arrivals File
+# Narrmx is the maximum number of arrivals allowed
+# mbp 9/96
+    if fname[-4:] != '.arr':
+        fname = fname + '.arr'
+    with open(fname, 'r') as f:
+        # read the header info
+        lines = f.readlines()
+        tmp = lines[0]
+        a = tmp.split()
+        freq = float(a[0])
+        Nsd, Nrd, Nrr = int(a[1]), int(a[2]), int(a[3])
+        tmp = lines[1].split()
+        sd = [float(x) for x in tmp]
+        tmp = lines[2].split()
+        rd = [float(x) for x in tmp]
+        tmp = lines[3].split()
+        rr = [float(x) for x in tmp] # in meters
+        dom = Dom(np.array(rr), np.array(rd))
+        arrival_list = []
+        source = Source(np.array(sd))
+        pos = Pos(source, dom)
+        line_index= 4
+        for i in range(Nsd):
+            num_angles = int(lines[line_index].split()[0])
+            print('num angles', num_angles)
+            line_index += 1
+            for j in range(Nrd):
+                for k in range(Nrr):
+                    num_arrivals = int(lines[line_index].split()[0])
+                    line_index += 1
+                    print('num_arrivals',  num_arrivals)
+                    loc_arrivals = [] #arrivals for this specific sd, rd, and rr
+                    for arr in range(num_arrivals):
+                        tmp = lines[line_index].split()
+                        amp = my_float(tmp[0])*np.exp(complex(0,1)*my_float(tmp[1])*np.pi/180)
+                        delay = complex(my_float(tmp[2]), my_float(tmp[3]))
+                        src_ang = my_float(tmp[4])
+                        rec_ang = my_float(tmp[5])
+                        num_top_bnc = int(tmp[6])
+                        num_bot_bnc = int(tmp[7])
+                        loc_arrivals.append([amp, delay, src_ang, rec_ang, num_top_bnc, num_bot_bnc])
+                        line_index += 1
+                    arrival_list.append(loc_arrivals)
+    return arrival_list, pos
+    #% loop to read all the arrival info (delay and amplitude)
+
+    #Arr.A         = zeros( Nrr, Narrmx, Nrd, Nsd );
+    #Arr.delay     = zeros( Nrr, Narrmx, Nrd, Nsd );
+    #Arr.SrcAngle  = zeros( Nrr, Narrmx, Nrd, Nsd );
+    #Arr.RcvrAngle = zeros( Nrr, Narrmx, Nrd, Nsd );
+    #Arr.NumTopBnc = zeros( Nrr, Narrmx, Nrd, Nsd );
+    #Arr.NumBotBnc = zeros( Nrr, Narrmx, Nrd, Nsd );
+
+    #for isd = 1 : Nsd
+    #   Narrmx2 = fscanf( fid, '%i', 1 );  % max. number of arrivals to follow
+    #   disp( [ 'Max. number of arrivals for source index ', num2str( isd ), ' is ', num2str( Narrmx2 ) ] );
+    #   for ird = 1:Nrd
+    #      for ir = 1:Nrr
+    #         Narr = fscanf( fid, '%i', 1 );	% number of arrivals
+    #         Arr.Narr( ir, ird, isd ) = Narr;
+    #         
+    #         if Narr > 0   % do we have any arrivals?
+    #            da = fscanf( fid, '%f', [ 8, Narr ] );
+    #            Narr = min( Narr, Narrmx ); % we'll keep no more than Narrmx values
+    #            Arr.Narr( ir, ird, isd ) = Narr;
+
+    #            Arr.A(         ir, 1:Narr, ird, isd ) = da( 1, 1:Narr ) .* exp( 1i * da( 2, 1:Narr ) * pi/180);
+    #            Arr.delay(     ir, 1:Narr, ird, isd ) = da( 3, 1:Narr ) + 1i * da( 4, 1:Narr );
+    #            Arr.SrcAngle(  ir, 1:Narr, ird, isd ) = da( 5, 1:Narr );
+    #            Arr.RcvrAngle( ir, 1:Narr, ird, isd ) = da( 6, 1:Narr );
+    #            Arr.NumTopBnc( ir, 1:Narr, ird, isd ) = da( 7, 1:Narr );
+    #            Arr.NumBotBnc( ir, 1:Narr, ird, isd ) = da( 8, 1:Narr );
+    #         end
+    #      end		% next receiver range
+    #   end		% next receiver depth
+    #end	% next source depth
+
+    #fclose( fid );
