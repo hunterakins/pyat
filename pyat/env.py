@@ -36,6 +36,21 @@ class Ice:
 
 class SSPraw:
     def __init__(self,z, alphaR, betaR, rho, alphaI, betaI):
+        """
+        Input:
+        z - numpy 1d array
+            Depths the ssp is taken at
+        alphaR - numpy 1d array
+            ssp vals
+        betaR - numpy 1d array
+            shear speeds
+        rho - numpy 1d array
+            density vals at the points
+        alphaI - numpy 1d array
+            attenuation (p-wave)
+        betaI - numpy 1d array
+            shear attenuation
+        """
         self.z = z
         self.alphaR = alphaR # sound speed in array
         self.betaR = betaR # shear wave speed
@@ -55,12 +70,13 @@ class SSPraw:
         return self.alphaR_f, self.betaR_f, self.rho_f, self.alphaI_f, self.betaI_f
 
 class SSP:
-    def __init__(self, raw, depth, NMedia, Opt=None, N=None, sigma=0):
+    def __init__(self, raw, depth, NMedia, Opt=None, N=None, sigma=0, ranges=0):
         self.NMedia	= NMedia # number of media layers
         self.Opt = Opt # option: not sure what this is for
         self.N			=	N	 # array with num points in each layer
         self.sigma		=	sigma	 # not sure
         self.depth		=	depth # depth array for layers
+        self.ranges = ranges
         self.raw = raw # list of raw ssp profile
         self.sspf = None
 
@@ -109,7 +125,7 @@ class Bndry:
         self.Bot = bot
 
 class Box:
-    def __init__(self, r, z):
+    def __init__(self, z, r):
         self.r = r
         self.z = z
 
@@ -227,7 +243,9 @@ class Modes:
     def __repr__(self):
         return 'Modes object with ' + str(self.M) + ' distinct modes'
                 
-        
+class Arrivals:
+    def __init__(self, stuff):
+        self.stuff = stuff        
 
 class KernInput:
     def __init__(self, Field_r, Field_s, env):

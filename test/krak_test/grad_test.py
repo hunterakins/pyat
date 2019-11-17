@@ -4,6 +4,7 @@ sys.path.append("../")
 from os import system
 from matplotlib import pyplot as plt
 from pyat.pyat.env import *
+from pyat.pyat.mode_grad import ModeGrad
 from pyat.pyat.readwrite import *
 
 
@@ -34,7 +35,7 @@ pos.Nrd = len(rd)
 
 
 
-depth = [0, 200, 300]
+depth = [0, 100, 150]
 # Layer 1
 z1		=	depth[0:2]	
 alphaR	=	cw*np.array([1,1])
@@ -49,7 +50,7 @@ print(ssp1.alphaR)
 arr = np.linspace(0, 150, 100)
 
 #Layer 2
-z2		=	depth[1:4]
+z2		=	depth[1:]
 alphaR	=	cb*np.array([1,1])
 betaR	=	0.0*np.array([1,1])
 rho		=	pb*np.array([1,1])
@@ -67,13 +68,13 @@ raw[0]
 ssp = SSP(raw, depth, 2, Opt, N, sigma)
 ssp.make_sspf()
 
-hs = HS(alphaR=cb, betaR=0, rho = pb, alphaI=ab, betaI=0)
+hs = HS()
 Opt = 'A~'
 bottom = BotBndry(Opt, hs)
 top = TopBndry('CVW')
 bdy = Bndry(top, bottom)
 
-plt.plot(ssp.sspf(np.linspace(0, depth[-1], 100)))
+plt.plot(ssp.sspf(np.linspace(0, 150, 100)))
 plt.show()
 
 class Empty:
@@ -84,7 +85,23 @@ cInt = Empty()
 cInt.High = 1e9
 cInt.Low = 1400
 RMax = max(X)
-freq = 100
+freq = 50
+E1 = np.array([[1,2], [1, -2]])
+print(E1)
+E2 = np.identity(2)
+dp1 = np.array([1,-1]).reshape(2,1)
+dp2 = np.array([-10,-10]).reshape(2,1)
+E = [E1, E2]
+dp = [dp1, dp2]
+mg = ModeGrad('py_env', dp, E)
+modegrad, modes0, modes1 = mg.compute_grad()
+plt.plot(modegrad[:,0])
+plt.show()
+plt.plot(modes0.phi[:,0])
+plt.show()
+plt.plot(modes1.phi[:,0])
+plt.show()
+
 write_env('py_env.env', 'KRAKEN', 'Pekeris profile', freq, ssp, bdy, pos, [], cInt, RMax)
   
 
@@ -92,25 +109,6 @@ s = Source([sd])
 ran =  np.arange(0,10, 10/1e3)
 depth = np.arange(0,150,1)
 r = Dom(ran, depth)
-
 pos = Pos(s, r)
 
-write_fieldflp('py_env', 'R', pos)
-system("/home/hunter/Downloads/at/bin/krakenc.exe py_env")
-fname = 'py_env.mod'
-options = {'fname':fname, 'freq':0}
-modes = read_modes(**options)
-print(modes)
-figs = modes.plot()
-plt.show()
-system("/home/hunter/Downloads/at/bin/field.exe py_env")
-[x,x,x,x,Pos1,pressure]= read_shd('py_env.shd')
-#pressure = np.squeeze(pressure)
-pressure = abs(pressure)
-pressure = 10*np.log10(pressure / np.max(pressure))
-print(np.shape(pressure))
-levs = np.linspace(np.min(pressure), np.max(pressure), 20)
-plt.contourf(Pos1.r.range, Pos1.r.depth,pressure[0, 0,:,:],levels=levs)
-plt.gca().invert_yaxis()
-plt.show()
 

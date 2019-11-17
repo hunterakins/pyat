@@ -166,6 +166,9 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
 
     # SSP
     for medium in range(ssp.NMedia):
+        print(medium)
+        print(ssp.depth[medium+1])
+        print(ssp.N[medium])
         f.write('{:5d}'.format(ssp.N[ medium ]) + \
                 ' {:4.2f}'.format(ssp.sigma[ medium ]) + \
                 ' {:6.2f}'.format(ssp.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
@@ -236,6 +239,48 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
         write_bell(f, beam )
 
     f.close()
+
+def write_ssp(sspfile, cw, r_arr):
+    """
+    Input 
+    sspfile - string    
+        path of file to write
+    cw - numpy 2d array
+        ssp profiles, columns are the depth profiles for given range
+    r_arr - numpy 1d array
+        ranges (in km) for updating ssp
+    """
+    if sspfile[-3:] != 'ssp':
+        sspfile += '.ssp'
+    with open(sspfile, 'w') as f:
+        f.write(str(r_arr.size)+'\r\n')
+        for val in r_arr:
+            f.write(str(val) + '\t')
+        f.write('\r\n')
+        for row in range(cw.shape[0]):
+            for val in cw[row,:]:
+                f.write(str(val) + '\t')
+            f.write('\r\n')
+        return
+    
+
+def write_bathy( btyfile, range_depth_array):
+    """
+    Input 
+    btyfile - string    
+        path of file to write
+    range_depth_array - numpy 2d array
+        first column is ranges (in km), second column is depths
+    """
+    if btyfile[-3:] != 'bty':
+        btyfile += '.bty'
+    with open(btyfile, 'w') as f:
+        f.write('L\r\n') 
+        f.write(str(range_depth_array.shape[0])+'\r\n')
+        for row in range(range_depth_array.shape[0]):
+            vals = range_depth_array[row,:]
+            f.write('  ' + str(vals[0]) + ' ' + str(vals[1]))
+    return
 
 def write_bell(f, beam):
     f.write('\''+beam.RunType+'\''+ ' \t \t \t \t ! Run Type \r\n');
@@ -829,7 +874,6 @@ def read_env_core( envfil ):
         bdry.Bot.rhoIns = ssp_rho[ I ]
         bdry.Bot.cIns   = ssp_c[   I ]
         ssp = SSP(ssp_raw_list, ssp_depth, NMedia, N=ssp_N, sigma=ssp_sigma)
-        ssp.make_sspf()
     return [TitleEnv, freq, ssp, bdry, lines, line_ind]
 
 def readvector(lines, line_ind):

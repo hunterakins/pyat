@@ -36,26 +36,30 @@ depth = [0, 5000]
 z1 = [0.0,  200.0,  250.0,  400.0,  600.0,  800.0, 1000.0, 1200.0, 1400.0, 1600.0, 1800.0, 2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0, 3200.0, 3400.0, 3600.0, 3800.0, 4000.0, 4200.0, 4400.0, 4600.0, 4800.0, 5000.0]
 
 alphaR = [1548.52,1530.29,1526.69,1517.78,1509.49,1504.30,1501.38,1500.14,1500.12,1501.02,1502.57,1504.62,1507.02,1509.69,1512.55,1515.56,1518.67,1521.85,1525.10,1528.38,1531.70,1535.04,1538.39,1541.76,1545.14,1548.52,1551.91]
-print(alphaR)
-betaR	=	0.0*np.array([1]*len(z1))		
-rho		=	pw*np.array([1]*len(z1))		
-alphaI	=	aw*np.array([1]*len(z1))		
-betaI	=	0.0*np.array([1]*len(z1))
+betaR	=	0.0*np.ones((len(z1)))
+rho		=	pw*np.ones((len(z1)))
+alphaI	=	aw*np.ones((len(z1)))
+betaI	=	0.0*np.ones((len(z1)))
+
+
+raw = np.zeros((len(alphaR), 2))
+raw[:,0] = alphaR
+raw[:,1] = [x + 10 for x in alphaR]
+write_ssp('py_env', raw, np.array([0, 110]))
 
 
 
 ssp1 = SSPraw(z1, alphaR, betaR, rho, alphaI, betaI)
-print(ssp1.alphaR)
 
 
 #	Sound-speed layer specifications
 raw = [ssp1]
 NMedia		=	1
-Opt			=	'CVW'	
+Opt			=	'QVW'	
 N			=	[0, 0]	
 sigma		=	[0, 0]	
 raw[0]
-ssp = SSP(raw, depth, NMedia, Opt, N, sigma)
+ssp = SSP(raw, depth, NMedia, Opt, N, sigma, 2)
 
 
 # Layer 2
@@ -68,7 +72,7 @@ rhob = 1600
 hs = HS(alphaR, betaR, rhob, alphaI, betaI)
 Opt = 'A'
 bottom = BotBndry(Opt, hs)
-top = TopBndry('CVW')
+top = TopBndry('QVW')
 bdy = Bndry(top, bottom)
 
 #plt.plot(ssp.sspf(np.linspace(0, 4000, 100)))
@@ -88,7 +92,7 @@ freq = 3000
 run_type = 'I'
 nbeams = 100
 alpha = np.linspace(-20,20, 100)
-box = Box( 5500, 100)
+box = Box(5500, 100)
 deltas=0
 beam = Beam(RunType=run_type, Nbeams=nbeams, alpha=alpha,box=box,deltas=deltas)
 
@@ -105,7 +109,9 @@ system("bellhop.exe py_env")
 
 [x,x,x,x,ppos, p] = read_shd("py_env.shd")
 print(p.shape)
+p = np.squeeze(p)
 p = abs(p)
+p = p[:,:]
 p = 10*np.log10(p/np.max(p))
 print(p)
 levs = np.linspace(-30, 0, 20)
