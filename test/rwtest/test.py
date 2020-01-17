@@ -5,6 +5,7 @@ from pyat.pyat.readwrite import *
 '''
 Description:
 Test read and write functionality of pyat
+Should add more tests but things are working alright
 
 Author: Hunter Akins
 

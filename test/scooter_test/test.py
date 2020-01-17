@@ -37,14 +37,12 @@ depth = [0, 100, 150]
 # Layer 1
 z1		=	depth[0:2]	
 alphaR	=	cw*np.array([1,1])
-print(alphaR)
 betaR	=	0.0*np.array([1,1])		
 rho		=	pw*np.array([1,1])		
 alphaI	=	aw*np.array([1,1])		
 betaI	=	0.0*np.array([1,1])
 
 ssp1 = SSPraw(z1, alphaR, betaR, rho, alphaI, betaI)
-print(ssp1.alphaR)
 arr = np.linspace(0, 150, 100)
 
 #Layer 2
@@ -73,12 +71,10 @@ bottom = BotBndry(Opt, hs)
 top = TopBndry('CVW')
 bdy = Bndry(top, bottom)
 
-plt.plot(ssp.sspf(np.linspace(0, 150, 100)))
+plt.title('Sound speed profile')
+plt.plot(ssp.sspf(np.linspace(0, 150, 100)), np.linspace(0, 150, 100))
+plt.gca().invert_yaxis()
 plt.show()
-
-class Empty:
-    def __init__(self):
-        return
 
 cInt = Empty()
 cInt.High = 1e9
@@ -96,18 +92,17 @@ pos = Pos(s, r)
 options = {'scooter': True}
 write_fieldflp('py_env', 'RP', pos, **options)
 
-print(pos.r.depth)
-print(pos.r.range)
-system("/home/hunter/Downloads/at/bin/scooter.exe py_env")
-system("/home/hunter/Downloads/at/bin/fields.exe py_env")
+system("scooter.exe py_env")
+system("fields.exe py_env")
 [x,x,freq,x,Pos1,pressure]= read_shd('py_env.shd')
-print(Pos1.r.depth)
-print(Pos1.r.range)
 pressure = abs(pressure)
 pressure = np.squeeze(pressure)
 pressure = 10*np.log10(pressure/np.max(pressure))
 levs = np.linspace(np.min(pressure), np.max(pressure), 20)
+plt.title("greens function contour (relative power DB scale)")
 plt.contourf(Pos1.r.range, Pos1.r.depth,pressure[:,:],levels=levs)
+plt.xlabel("Range (m)")
+plt.ylabel("Depth (m)")
 plt.gca().invert_yaxis()
 plt.show()
 

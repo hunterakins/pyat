@@ -96,14 +96,14 @@ r = Dom(ran, depth)
 pos = Pos(s, r)
 
 write_fieldflp('py_env', 'R', pos)
-system("/home/hunter/Downloads/at/bin/krakenc.exe py_env")
+system("krakenc.exe py_env")
 fname = 'py_env.mod'
 options = {'fname':fname, 'freq':0}
 modes = read_modes(**options)
 print(modes)
 figs = modes.plot()
 plt.show()
-system("/home/hunter/Downloads/at/bin/field.exe py_env")
+system("field.exe py_env")
 [x,x,x,x,Pos1,pressure]= read_shd('py_env.shd')
 #pressure = np.squeeze(pressure)
 pressure = abs(pressure)
