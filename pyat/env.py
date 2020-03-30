@@ -242,10 +242,21 @@ class Modes:
 
     def __repr__(self):
         return 'Modes object with ' + str(self.M) + ' distinct modes'
-                
+      
+class Arrival:
+    def __init__(self, info_list):
+        self.amp = info_list[0]
+        self.delay = info_list[1] 
+        self.src_ang = info_list[2] 
+        self.rec_ang = info_list[3] 
+        self.num_top_bnc = info_list[4] 
+        self.num_bot_bnc = info_list[5] 
+        
+        
+          
 class Arrivals:
-    def __init__(self, stuff):
-        self.stuff = stuff        
+    def __init__(self, arrival_list):
+        
 
 class KernInput:
     def __init__(self, Field_r, Field_s, env):
