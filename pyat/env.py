@@ -252,10 +252,33 @@ class Arrival:
         self.num_top_bnc = info_list[4] 
         self.num_bot_bnc = info_list[5] 
         
-        
-          
 class Arrivals:
     def __init__(self, arrival_list):
+        self.arrivals = arrival_list
+    
+    def plot_cir(self, vals=None):
+        """
+        Plot the channel impulse response
+        """
+        arrival_list = self.arrivals
+        amps = np.array([x.amp.real for x in arrival_list])
+        times = np.array([x.delay for x in arrival_list])
+        """
+        Create the time axis
+        """
+        if type(vals) != type(None):
+            t = np.linspace(np.min(vals[0])-2, np.max(vals[0]) +2, 100)
+        else:
+            t = np.linspace(np.min(times) - 2, np.max(times) + 2, 100)
+        zeros = np.zeros(t.size)
+        plt.scatter(t, zeros, s=6)
+        plt.stem(times, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
+        plt.scatter(times, amps,s=36,c='r')
+        ymin = np.min(amps)
+        ymax = np.max(amps)
+        vals = [times, amps]
+        return ymin, ymax, vals
+        
         
 
 class KernInput:
