@@ -1,2 +1,8 @@
 __pycache__
+**/*.shd
+pyat/mode_grad.py
+**/*.env
+**/*.prt
+**/*.swp
+
 
