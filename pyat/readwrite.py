@@ -137,7 +137,6 @@ class Empty():
 
 def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, *varargin ):
     if (envfil[-4:] != '.env' ):
-        print('appending')
         envfil = envfil + '.env' # append extension
 
     if ( len( varargin ) == 0 ):
@@ -166,9 +165,6 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
 
     # SSP
     for medium in range(ssp.NMedia):
-        print(medium)
-        print(ssp.depth[medium+1])
-        print(ssp.N[medium])
         f.write('{:5d}'.format(ssp.N[ medium ]) + \
                 ' {:4.2f}'.format(ssp.sigma[ medium ]) + \
                 ' {:6.2f}'.format(ssp.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
@@ -1206,13 +1202,11 @@ def read_arrivals_asc(fname, narrmx=200):
         line_index= 4
         for i in range(Nsd):
             num_angles = int(lines[line_index].split()[0])
-            print('num angles', num_angles)
             line_index += 1
             for j in range(Nrd):
                 for k in range(Nrr):
                     num_arrivals = int(lines[line_index].split()[0])
                     line_index += 1
-                    print('num_arrivals',  num_arrivals)
                     loc_arrivals = [] #arrivals for this specific sd, rd, and rr
                     for arr in range(num_arrivals):
                         tmp = lines[line_index].split()
