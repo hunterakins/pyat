@@ -4,7 +4,7 @@ To install:
 
 cd to a directory in your Python path
 
-git clone https://github.com/hunter/pyat
+git clone https://github.com/hunterakins/pyat
 
 That will install the code
 
