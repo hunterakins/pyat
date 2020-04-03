@@ -259,9 +259,20 @@ class Arrivals:
     def plot_cir(self, vals=None):
         """
         Plot the channel impulse response
+        Vals provides the option to pass in a set of arrivals to use fo calibrating the y axis
+        If vals=None, I use the arrivals in the object to calibrate the y-axis
+        I don't create a figure
+        I return ymin, ymax, vals so that the values from this arrival set can be used in a more global
+        scope to set the y-axis limits (useful for creating videos comprised of snapshots of a bunch
+        of CIR's). For example, I want to plot a bunch of Arrivals on the same plot, or combine a bunch of
+        CIRs into a video. Then I need to have the same axis limits for all the plots. 
+        I can use default vals (None) for the first plot, then use the ymin, ymax, vals return values
+        in a larger scope to standardize the axes. Then for the second, third, ... plots, I pass in vals
+        to make sure they all have the same time axis.
         """
         arrival_list = self.arrivals
         amps = np.array([x.amp.real for x in arrival_list])
+        phase = np.array([np.angle(x.amp) for x in arrival_list])
         times = np.array([x.delay for x in arrival_list])
         """
         Create the time axis
@@ -274,8 +285,9 @@ class Arrivals:
         plt.scatter(t, zeros, s=6)
         plt.stem(times, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
         plt.scatter(times, amps,s=36,c='r')
-        ymin = np.min(amps)
-        ymax = np.max(amps)
+        scale = 1.5*np.max(abs(amps)) # set yaxis scale
+        ymin = - scale
+        ymax = scale
         vals = [times, amps]
         return ymin, ymax, vals
         
