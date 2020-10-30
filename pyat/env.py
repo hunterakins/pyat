@@ -1,6 +1,8 @@
 import numpy as np
 from copy import deepcopy
 from matplotlib import pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import ListedColormap as LCM
 from scipy.interpolate import interp1d
 
 
@@ -213,23 +215,57 @@ class Modes:
         self.excited_k = self.k[filtered_inds]
         return self.excited_phi, self.excited_k
 
-    def remove_source_pos(self, sd):
+    def get_source_depth_ind(self, sd):
         if sd not in self.z:
-            return
+            raise ValueError("sd not in the depth array, are you sure it's the right depth you're passing?")
         else:
-            print('removing source')    
-            sind = np.argmin([abs(x - sd) for x in self.z])
+            sind = [i for i in range(len(self.z)) if self.z[i] == sd][0]
+            self.sind = sind
+            return  sind
+
+    def remove_source_pos(self, sd):
+        """
+        Take the source at sd from the mode matrix
+        Initiate a new attribute to hold the source
+        modal value
+        """
+        sind = self.get_source_depth_ind(sd)
+        new_pos_len = len(self.z) - 1
+        new_phi = np.zeros((new_pos_len, self.num_modes), dtype=self.phi.dtype)
+        new_phi[:sind, :] = self.phi[:sind, :]
+        new_phi[sind:,:] = self.phi[sind+1:,:]
+        self.phi = new_phi
+        new_z = np.zeros((new_pos_len), dtype=self.z.dtype)
+        new_z[:sind] = self.z[:sind]
+        new_z[sind:] = self.z[sind+1:]
+        self.z = new_z
+        self.source_strength = self.phi[sind,:]
+        return 
+            
+    def get_source_strength(self, sd):
+        """
+        Get the value of each mode at the source depth sd (meters)
+        Initialize new attribute for the source strength
+        """
+        sind = self.get_source_depth_ind(sd)
+        vals = self.phi[sind,:]
+        self.source_strength = vals
+        return  vals
+
+    def get_receiver_modes(self, sd, zr):
+        if sd in zr:
+            receiver_modes= self.phi
+        else:
+            sind = self.get_source_depth_ind(sd)
             new_pos_len = len(self.z) - 1
             new_phi = np.zeros((new_pos_len, self.num_modes), dtype=self.phi.dtype)
             new_phi[:sind, :] = self.phi[:sind, :]
             new_phi[sind:,:] = self.phi[sind+1:,:]
-            self.phi = new_phi
-            new_z = np.zeros((new_pos_len), dtype=self.z.dtype)
-            new_z[:sind] = self.z[:sind]
-            new_z[sind:] = self.z[sind+1:]
-            self.z = new_z
-            return 
-            
+            receiver_modes = new_phi
+        self.receiver_modes = receiver_modes
+        return receiver_modes
+        
+        
 
     def plot(self):
         figs = []
@@ -269,6 +305,13 @@ class Arrivals:
         I can use default vals (None) for the first plot, then use the ymin, ymax, vals return values
         in a larger scope to standardize the axes. Then for the second, third, ... plots, I pass in vals
         to make sure they all have the same time axis.
+        Output - 
+            ymin - float
+            ymax -float 
+                plus/minus 1.5 times max amplitude value
+            vals - list
+                vals[0] is the times
+                vals[1] is the amplitude vals
         """
         arrival_list = self.arrivals
         amps = np.array([x.amp.real for x in arrival_list])
@@ -290,8 +333,41 @@ class Arrivals:
         ymax = scale
         vals = [times, amps]
         return ymin, ymax, vals
-        
-        
+
+    def plot_ellipse(self, vals=None):
+        """
+        Produce the travel time ellipse with colorbar for amplitude
+        Input - 
+        self - contains all the arrival info
+        vals - optional
+            allows me to use a reference arrival set to calibrate the plot axes
+            vals[0] = times
+            vals[0] = amps
+        """
+        arrival_list = self.arrivals
+        amps = np.array([x.amp.real for x in arrival_list])
+        times = np.array([x.delay for x in arrival_list])
+        angles = np.array([x.rec_ang for x in arrival_list])
+        """
+        Create the time axis
+        """
+        if type(vals) != type(None):
+            tmin, tmax = np.min(vals[0]), np.max(vals[0])
+        else:
+            tmin, tmax = np.min(times), np.max(times)
+        amps = amps / np.max(abs(amps))
+        cvals = np.log10(abs(amps))
+        """ Make a nice cmap """ 
+        oran = cm.get_cmap('hsv')
+        oran = oran(np.linspace(.13, 0, 10))
+        mymap = LCM(oran, 'mymap')
+        """ Configure the x axis """
+        plt.scatter([tmin, tmax], [0,0], s=0)
+        plt.scatter(times, angles, s=25, c=cvals, cmap=mymap)
+        plt.colorbar()
+        vals = [times, amps]
+        ymin, ymax = -1.5*np.max(abs(angles)), 1.5*np.max(abs(angles))
+        return ymin, ymax, vals
 
 class KernInput:
     def __init__(self, Field_r, Field_s, env):
