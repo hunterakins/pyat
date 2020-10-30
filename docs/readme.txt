@@ -39,15 +39,13 @@ Acoustics Toolbox:
 The code relies on a successful install of the Acoustics Toolbox
 (https://oalib-acoustics.org/AcousticsToolbox/index_at.html)
 There are instructions there how to build it. 
-If it fails to build, it's likely because you need to install some specific fortran libraries on your computer. 
-Just look carefully at the makefile output and find out what is breaking the build.
-Then google how to install those fortran libraries on your computer. 
-It's worth putting in effort to compile it because it's so useful.
+In my experience, I had to install a few extra Fortran libraries to successfully build it.
 
-Brief overview of the AT (for completeness):
+Brief overview of the AT (for completeness, skip if you're already familiar):
+
 Once you build the acoustics toolbox, you get access to a set of binaries (with a dummy extension .exe even on Linux) that take in text configuration files.
 In principal, you could never use matlab or python, and manually create environment files, field files, etc. and manually run the models on them e.g. >> /home/yourname/directorywherethebinariesare/kraken.exe manually_created_env_file.env
-This command will fied the text file *.env to the kraken program. 
+This command will feed the text file *.env to the kraken program. 
 If the .env file is properly created, Kraken will output a .mod file
 In practice though you want to plot and process the simulation outputs. 
 Since .mod is a binary file type, you need some programs to read it into a useful format.
