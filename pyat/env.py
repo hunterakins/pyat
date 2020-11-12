@@ -252,16 +252,9 @@ class Modes:
         self.source_strength = vals
         return  vals
 
-    def get_receiver_modes(self, sd, zr):
-        if sd in zr:
-            receiver_modes= self.phi
-        else:
-            sind = self.get_source_depth_ind(sd)
-            new_pos_len = len(self.z) - 1
-            new_phi = np.zeros((new_pos_len, self.num_modes), dtype=self.phi.dtype)
-            new_phi[:sind, :] = self.phi[:sind, :]
-            new_phi[sind:,:] = self.phi[sind+1:,:]
-            receiver_modes = new_phi
+    def get_receiver_modes(self, zr):
+        r_inds = [i for i in range(len(self.z)) if self.z[i] in zr]
+        receiver_modes = self.phi[r_inds, :]
         self.receiver_modes = receiver_modes
         return receiver_modes
         
