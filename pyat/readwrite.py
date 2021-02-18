@@ -205,7 +205,9 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
     if ( len( pos.s.depth ) >= 2) and equally_spaced( pos.s.depth ):
         f.write('\r\n    {:6f} '.format(pos.s.depth[0]) +' {:6f} '.format(pos.s.depth[-1]))
     else:
-        f.write('\r\n    {:6f}  '.format( pos.s.depth[0] ))
+        f.write('\r\n    ')#{:6f}  '.format( pos.s.depth[0] ))
+        for tmp_depth in pos.s.depth:
+            f.write('{:6f} '.format(tmp_depth) )
 
     f.write('/ \t ! SD(1)  ... (m) \r\n' )
 
@@ -893,7 +895,7 @@ def readvector(lines, line_ind):
     line_ind = int(line_ind)
     tmp = lines[line_ind]
     line_ind += 1
-    Nx = float(tmp.split()[0])
+    Nx = int(tmp.split()[0])
     tmp = lines[line_ind]
     line_ind += 1
     

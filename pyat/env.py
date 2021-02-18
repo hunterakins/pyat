@@ -216,12 +216,16 @@ class Modes:
         return self.excited_phi, self.excited_k
 
     def get_source_depth_ind(self, sd):
-        if sd not in self.z:
+        """
+        sd is an int 
+        """
+        tol = 1e-2
+        sind = [i for i in range(len(self.z)) if abs(self.z[i]-sd) < tol]
+        if len(sind) == 0 :
             raise ValueError("sd not in the depth array, are you sure it's the right depth you're passing?")
         else:
-            sind = [i for i in range(len(self.z)) if self.z[i] == sd][0]
-            self.sind = sind
-            return  sind
+            self.sind = sind[0]
+        return  sind
 
     def remove_source_pos(self, sd):
         """
@@ -253,11 +257,14 @@ class Modes:
         return  vals
 
     def get_receiver_modes(self, zr):
-        r_inds = [i for i in range(len(self.z)) if self.z[i] in zr]
+        """
+        zr is array like 
+        """
+        tol = 1e-3
+        r_inds = [i for i in range(len(self.z)) if np.min(abs(self.z[i]-zr)) < tol]
         receiver_modes = self.phi[r_inds, :]
         self.receiver_modes = receiver_modes
         return receiver_modes
-        
         
 
     def plot(self):
@@ -372,6 +379,3 @@ class KernInput:
         
     
 
-
-
-         
