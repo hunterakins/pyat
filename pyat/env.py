@@ -75,8 +75,8 @@ class SSP:
     def __init__(self, raw, depth, NMedia, Opt=None, N=None, sigma=0, ranges=0):
         self.NMedia	= NMedia # number of media layers
         self.Opt = Opt # option: not sure what this is for
-        self.N			=	N	 # array with num points in each layer
-        self.sigma		=	sigma	 # not sure
+        self.N			=	N	 # array with num points in each layer, don't include one for halfpace
+        self.sigma		=	sigma	 # ''interfacial roughness'', one for each layer? see Kuperman and ingenito 1977 for definition, include a point for the halfspace
         self.depth		=	depth # depth array for layers
         self.ranges = ranges
         self.raw = raw # list of raw ssp profile

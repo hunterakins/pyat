@@ -8,11 +8,12 @@ from pyat.pyat.readwrite import *
 
 
 
+
 sd	=	20
 rd = [94.125, 99.755, 105.38, 111.00, 116.62, 122.25, 127.88, 139.12, 144.74, 150.38, 155.99, 161.62, 167.26, 172.88, 178.49, 184.12, 189.76, 195.38, 200.99, 206.62, 212.25]
 rr	=	2.5
 
-Z = np.arange(0, 150.5, .5)
+Z = np.arange(0, 100, .5)
 X = np.arange(0, 10, .01)
 
 cw		=	1500
@@ -33,39 +34,27 @@ pos.Nrd = len(rd)
 
 
 
-
-depth = [0, 200, 300]
+bottom_depth = 100
+depth = [0, bottom_depth] 
 # Layer 1
 z1		=	depth[0:2]	
-alphaR	=	cw*np.array([1,1])
-print(alphaR)
-betaR	=	0.0*np.array([1,1])		
-rho		=	pw*np.array([1,1])		
-alphaI	=	aw*np.array([1,1])		
-betaI	=	0.0*np.array([1,1])
+z1 = np.linspace(depth[0], bottom_depth, 1000)
+alphaR	=	cw*np.ones(z1.shape)
+betaR	=	0.0*np.ones(z1.shape)
+rho		=	pw*np.ones(z1.shape)
+alphaI	=	aw*np.ones(z1.shape)
+betaI	=	0.0*np.ones(z1.shape)
 
 ssp1 = SSPraw(z1, alphaR, betaR, rho, alphaI, betaI)
-print(ssp1.alphaR)
-arr = np.linspace(0, 150, 100)
-
-#Layer 2
-z2		=	depth[1:4]
-alphaR	=	cb*np.array([1,1])
-betaR	=	0.0*np.array([1,1])
-rho		=	pb*np.array([1,1])
-alphaI	=	ab*np.array([1,1])	  
-betaI	=	0.0*np.array([1,1])
-ssp2 = SSPraw(z2, alphaR, betaR, rho, alphaI, betaI)
 
 #	Sound-speed layer specifications
-raw = [ssp1, ssp2]
-NMedia		=	2
+raw = [ssp1]
+NMedia		=	1
 Opt			=	'CVW'	
-N			=	[0, 0]	
-sigma		=	[0, 0]	
-raw[0]
-ssp = SSP(raw, depth, 2, Opt, N, sigma)
-ssp.make_sspf()
+N			=	[z1.size]
+sigma		=	[.5,.5]	 # roughness at each layer. only effects attenuation (imag part)
+ssp = SSP(raw, depth, NMedia, Opt, N, sigma)
+
 
 hs = HS(alphaR=cb, betaR=0, rho = pb, alphaI=ab, betaI=0)
 Opt = 'A~'
@@ -73,16 +62,14 @@ bottom = BotBndry(Opt, hs)
 top = TopBndry('CVW')
 bdy = Bndry(top, bottom)
 
-plt.plot(ssp.sspf(np.linspace(0, depth[-1], 100)))
-plt.show()
 
 class Empty:
     def __init__(self):
         return
 
 cInt = Empty()
-cInt.High = 1e9
-cInt.Low = 1400
+cInt.High = cb
+cInt.Low = 0 # compute automatically
 RMax = max(X)
 freq = 100
 write_env('py_env.env', 'KRAKEN', 'Pekeris profile', freq, ssp, bdy, pos, [], cInt, RMax)
@@ -90,7 +77,7 @@ write_env('py_env.env', 'KRAKEN', 'Pekeris profile', freq, ssp, bdy, pos, [], cI
 
 s = Source([sd])
 ran =  np.arange(0,10, 10/1e3)
-depth = np.arange(0,150,1)
+depth = np.arange(0,1.5*bottom_depth,1)
 r = Dom(ran, depth)
 
 pos = Pos(s, r)
@@ -101,8 +88,15 @@ fname = 'py_env.mod'
 options = {'fname':fname, 'freq':0}
 modes = read_modes(**options)
 print(modes)
-figs = modes.plot()
-plt.show()
+print(modes.k)
+delta_k = np.max(modes.k.real) - np.min(modes.k.real)
+print('range cell size', 2*np.pi/delta_k)
+bandwidth = delta_k * 2.5 / 2 / (2*np.pi)
+print('bandwidth', bandwidth )
+print('coh time', 1/bandwidth)
+print('cell cross time', 2*np.pi / delta_k / 2.5)
+#figs = modes.plot()
+#plt.show()
 system("field.exe py_env")
 [x,x,x,x,Pos1,pressure]= read_shd('py_env.shd')
 #pressure = np.squeeze(pressure)
@@ -110,7 +104,7 @@ pressure = abs(pressure)
 pressure = 10*np.log10(pressure / np.max(pressure))
 print(np.shape(pressure))
 levs = np.linspace(np.min(pressure), np.max(pressure), 20)
-plt.contourf(Pos1.r.range, Pos1.r.depth,pressure[0, 0,:,:],levels=levs)
+plt.contourf(Pos1.r.range, Pos1.r.depth,(pressure[0, 0,:,:]),levels=levs)
 plt.gca().invert_yaxis()
 plt.show()
 
