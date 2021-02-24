@@ -225,7 +225,7 @@ class Modes:
             raise ValueError("sd not in the depth array, are you sure it's the right depth you're passing?")
         else:
             self.sind = sind[0]
-        return  sind
+        return  self.sind
 
     def remove_source_pos(self, sd):
         """
