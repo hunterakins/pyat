@@ -1169,19 +1169,6 @@ def my_float(x):
         return float(x)
 
 def read_arrivals_asc(fname, narrmx=200):
-#function [ Arr, Pos ] = read_arrivals_asc( ARRFile, Narrmx )
-
-# Read the arrival time/amplitude data computed by BELLHOP
-#
-# usage:
-#[ Arr, Pos ] = read_arrivals_asc( ARRFile, Narrmx );
-#
-# Arr is a structure containing all the arrivals information
-# Pos is a structure containing the positions of source and receivers
-#
-# ARRFile is the name of the Arrivals File
-# Narrmx is the maximum number of arrivals allowed
-# mbp 9/96
     if fname[-4:] != '.arr':
         fname = fname + '.arr'
     with open(fname, 'r') as f:
@@ -1222,37 +1209,48 @@ def read_arrivals_asc(fname, narrmx=200):
                         line_index += 1
                     arrival_list.append(loc_arrivals)
     return arrival_list, pos
-    #% loop to read all the arrival info (delay and amplitude)
 
-    #Arr.A         = zeros( Nrr, Narrmx, Nrd, Nsd );
-    #Arr.delay     = zeros( Nrr, Narrmx, Nrd, Nsd );
-    #Arr.SrcAngle  = zeros( Nrr, Narrmx, Nrd, Nsd );
-    #Arr.RcvrAngle = zeros( Nrr, Narrmx, Nrd, Nsd );
-    #Arr.NumTopBnc = zeros( Nrr, Narrmx, Nrd, Nsd );
-    #Arr.NumBotBnc = zeros( Nrr, Narrmx, Nrd, Nsd );
-
-    #for isd = 1 : Nsd
-    #   Narrmx2 = fscanf( fid, '%i', 1 );  % max. number of arrivals to follow
-    #   disp( [ 'Max. number of arrivals for source index ', num2str( isd ), ' is ', num2str( Narrmx2 ) ] );
-    #   for ird = 1:Nrd
-    #      for ir = 1:Nrr
-    #         Narr = fscanf( fid, '%i', 1 );	% number of arrivals
-    #         Arr.Narr( ir, ird, isd ) = Narr;
-    #         
-    #         if Narr > 0   % do we have any arrivals?
-    #            da = fscanf( fid, '%f', [ 8, Narr ] );
-    #            Narr = min( Narr, Narrmx ); % we'll keep no more than Narrmx values
-    #            Arr.Narr( ir, ird, isd ) = Narr;
-
-    #            Arr.A(         ir, 1:Narr, ird, isd ) = da( 1, 1:Narr ) .* exp( 1i * da( 2, 1:Narr ) * pi/180);
-    #            Arr.delay(     ir, 1:Narr, ird, isd ) = da( 3, 1:Narr ) + 1i * da( 4, 1:Narr );
-    #            Arr.SrcAngle(  ir, 1:Narr, ird, isd ) = da( 5, 1:Narr );
-    #            Arr.RcvrAngle( ir, 1:Narr, ird, isd ) = da( 6, 1:Narr );
-    #            Arr.NumTopBnc( ir, 1:Narr, ird, isd ) = da( 7, 1:Narr );
-    #            Arr.NumBotBnc( ir, 1:Narr, ird, isd ) = da( 8, 1:Narr );
-    #         end
-    #      end		% next receiver range
-    #   end		% next receiver depth
-    #end	% next source depth
-
-    #fclose( fid );
+def read_arrivals_asc_alt(fname, narrmx=200):
+    """
+    Alternate one with different header...
+    """
+    if fname[-4:] != '.arr':
+        fname = fname + '.arr'
+    with open(fname, 'r') as f:
+        # read the header info
+        lines = f.readlines()
+        tmp = lines[1]
+        a = tmp.split()
+        freq = float(a[0])
+        b = lines[2].split()
+        c = lines[3].split()
+        d = lines[4].split()
+        Nsd, Nrd, Nrr = int(b[0]), int(c[0]), int(d[0])
+        sd = [float(x) for x in b[1:]]
+        rd = [float(x) for x in c[1:]]
+        rr = [float(x) for x in d[1:]] # in meters
+        dom = Dom(np.array(rr), np.array(rd))
+        arrival_list = []
+        source = Source(np.array(sd))
+        pos = Pos(source, dom)
+        line_index= 5
+        for i in range(Nsd):
+            num_angles = int(lines[line_index].split()[0])
+            line_index += 1
+            for j in range(Nrd):
+                for k in range(Nrr):
+                    num_arrivals = int(lines[line_index].split()[0])
+                    line_index += 1
+                    loc_arrivals = [] #arrivals for this specific sd, rd, and rr
+                    for arr in range(num_arrivals):
+                        tmp = lines[line_index].split()
+                        amp = my_float(tmp[0])*np.exp(complex(0,1)*my_float(tmp[1])*np.pi/180)
+                        delay = complex(my_float(tmp[2]), my_float(tmp[3]))
+                        src_ang = my_float(tmp[4])
+                        rec_ang = my_float(tmp[5])
+                        num_top_bnc = int(tmp[6])
+                        num_bot_bnc = int(tmp[7])
+                        loc_arrivals.append([amp, delay, src_ang, rec_ang, num_top_bnc, num_bot_bnc])
+                        line_index += 1
+                    arrival_list.append(loc_arrivals)
+    return arrival_list, pos

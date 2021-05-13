@@ -314,7 +314,7 @@ class Arrivals:
                 vals[1] is the amplitude vals
         """
         arrival_list = self.arrivals
-        amps = np.array([x.amp.real for x in arrival_list])
+        amps = np.array([abs(x.amp) for x in arrival_list])
         phase = np.array([np.angle(x.amp) for x in arrival_list])
         times = np.array([x.delay for x in arrival_list])
         """
@@ -325,16 +325,16 @@ class Arrivals:
         else:
             t = np.linspace(np.min(times) - 2, np.max(times) + 2, 100)
         zeros = np.zeros(t.size)
-        plt.scatter(t, zeros, s=6)
-        plt.stem(times, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
-        plt.scatter(times, amps,s=36,c='r')
+        plt.scatter(t.real, zeros, s=6)
+        plt.stem(times.real, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
+        plt.scatter(times.real, amps,s=36,c='r')
         scale = 1.5*np.max(abs(amps)) # set yaxis scale
         ymin = - scale
         ymax = scale
-        vals = [times, amps]
+        vals = [times.real, amps]
         return ymin, ymax, vals
 
-    def plot_ellipse(self, vals=None):
+    def plot_ellipse(self, vals=None, ref_amp =None):
         """
         Produce the travel time ellipse with colorbar for amplitude
         Input - 
@@ -345,8 +345,8 @@ class Arrivals:
             vals[0] = amps
         """
         arrival_list = self.arrivals
-        amps = np.array([x.amp.real for x in arrival_list])
-        times = np.array([x.delay for x in arrival_list])
+        amps = np.array([abs(x.amp) for x in arrival_list])
+        times = np.array([x.delay.real for x in arrival_list])
         angles = np.array([x.rec_ang for x in arrival_list])
         """
         Create the time axis
@@ -355,8 +355,12 @@ class Arrivals:
             tmin, tmax = np.min(vals[0]), np.max(vals[0])
         else:
             tmin, tmax = np.min(times), np.max(times)
-        amps = amps / np.max(abs(amps))
+        if type(ref_amp) == type(None):
+            amps = amps / np.max(abs(amps))
+        else:
+            amps /= ref_amp
         cvals = np.log10(abs(amps))
+        cvals = np.linspace(-5, 0, len(amps))
         """ Make a nice cmap """ 
         oran = cm.get_cmap('hsv')
         oran = oran(np.linspace(.13, 0, 10))
