@@ -302,7 +302,7 @@ class Arrivals:
     def __init__(self, arrival_list):
         self.arrivals = arrival_list
     
-    def plot_cir(self, vals=None):
+    def plot_cir(self, vals=None,ax=None):
         """
         Plot the channel impulse response
         Vals provides the option to pass in a set of arrivals to use fo calibrating the y axis
@@ -331,20 +331,22 @@ class Arrivals:
         Create the time axis
         """
         if type(vals) != type(None):
-            t = np.linspace(np.min(vals[0])-2, np.max(vals[0]) +2, 100)
+            t = np.linspacea(.9*np.min(vals[0]), 1.1*np.max(vals[0]), 100)
         else:
-            t = np.linspace(np.min(times) - 2, np.max(times) + 2, 100)
+            t = np.linspace(.9*np.min(times), 1.1*np.max(times), 100)
         zeros = np.zeros(t.size)
-        plt.scatter(t.real, zeros, s=6)
-        plt.stem(times.real, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
-        plt.scatter(times.real, amps,s=36,c='r')
+        if type(ax) == type(None):
+            fig, ax = plt.subplots(2,1) 
+        ax.scatter(t.real, zeros, s=6)
+        ax.stem(times.real, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
+        ax.scatter(times.real, amps,s=36,c='r')
         scale = 1.5*np.max(abs(amps)) # set yaxis scale
         ymin = - scale
         ymax = scale
         vals = [times.real, amps]
         return ymin, ymax, vals
 
-    def plot_ellipse(self, vals=None, ref_amp =None, src_ang=False):
+    def plot_ellipse(self, vals=None, ref_amp =None, src_ang=False, ax=None):
         """
         Produce the travel time ellipse with colorbar for amplitude
         Input - 
@@ -378,13 +380,15 @@ class Arrivals:
         oran = oran(np.linspace(.13, 0, 10))
         mymap = LCM(oran, 'mymap')
         """ Configure the x axis """
-        plt.scatter([tmin, tmax], [0,0], s=0)
+
+        if type(ax) == type(None):
+            fig, ax = plt.subplots(2,1) 
+        ax.scatter([tmin, tmax], [0,0], s=0)
         if src_ang == False:
             angles = rec_angles
         else:
             angles = src_angles
-        plt.scatter(times, angles, s=25, c=cvals, cmap=mymap)
-        plt.colorbar()
+        ax.scatter(times, angles, s=25, c=cvals, cmap=mymap)
         vals = [times, amps]
         ymin, ymax = -1.5*np.max(abs(angles)), 1.5*np.max(abs(angles))
         return ymin, ymax, vals

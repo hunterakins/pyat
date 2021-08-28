@@ -1311,123 +1311,26 @@ def plotray(fname):
                     num_top_bnc= int(tmp[1])
                     num_bot_bnc= int(tmp[2])
                     line_ind +=  1
-                    for line_ind in range(line_ind, line_ind + nsteps-1):
+                    x,y = np.zeros(nsteps), np.zeros(nsteps)
+                    counter = 0
+                    for line_ind in range(line_ind, line_ind + nsteps):
                         tmp = lines[line_ind].split(' ')
                         tmp = [x for x in tmp if x != '']
-                        x,y = float(tmp[0]), float(tmp[1])
-                        tmp = lines[line_ind+1].split(' ')
-                        tmp = [x for x in tmp if x != '']
-                        x1,y1 = float(tmp[0]), float(tmp[1])
-                        if num_top_bnc == 0 and num_bot_bnc==0: 
-                            axis.plot([x, x1], [y,y1], color='k')
-                        elif num_top_bnc == 1 and num_top_bnc == 0:
-                            axis.plot([x, x1], [y,y1], color='b', alpha=.85)
-                        elif num_top_bnc == 0 and num_top_bnc == 1:
-                            axis.plot([x, x1], [y,y1], color='r', alpha=.85)
-                        else:
-                            axis.plot([x, x1], [y,y1], color='g',alpha=.7)
-                    line_ind += 2
+                        x[counter],y[counter] = float(tmp[0]), float(tmp[1])
+                        counter +=1
+
+                    if num_top_bnc == 0 and num_bot_bnc==0: 
+                        axis.plot(x,y, color='k')
+                    elif num_top_bnc == 1 and num_top_bnc == 0:
+                        axis.plot(x,y, color='b', alpha=.85)
+                    elif num_top_bnc == 0 and num_top_bnc == 1:
+                        axis.plot(x,y, color='r', alpha=.85)
+                    else:
+                        axis.plot(x,y, color='g',alpha=.7)
+                    line_ind += 1
         print('done')
                     
         return fig, axis
                 
                 
         
-        """
-        FREQ        = fscanf( fid, '%f', 1 );
-        Nsxyz       = fscanf( fid, '%f', 3 );
-        NBeamAngles = fscanf( fid, '%i', 2 );
-
-        DEPTHT      = fscanf( fid, '%f', 1 );
-        DEPTHB      = fscanf( fid, '%f', 1 );
-
-        Type        = fgetl( fid );
-        Type        = fgetl( fid );
-
-
-
-    % this could be changed to a forever loop
-    for isz = 1 : Nsz
-       for ibeam = 1 : Nalpha
-          alpha0    = fscanf( fid, '%f', 1 );
-          nsteps    = fscanf( fid, '%i', 1 );
-
-          NumTopBnc = fscanf( fid, '%i', 1 );
-          NumBotBnc = fscanf( fid, '%i', 1 );
-
-          if isempty( nsteps ); break; end
-          switch Type
-             case 'rz'
-                ray = fscanf( fid, '%f', [2 nsteps] );
-                
-                r = ray( 1, : );
-                z = ray( 2, : );
-             case 'xyz'
-                ray = fscanf( fid, '%f', [3 nsteps] );
-                
-                xs = ray( 1, 1 );
-                ys = ray( 2, 1 );
-                r = sqrt( ( ray( 1, : ) - xs ).^2 + ( ray( 2, : ) - ys ).^2 );
-                z = ray( 3, : );
-          end
-          
-          if ( strcmp( units, 'km' ) )
-             r = r / 1000;   % convert to km
-          end
-          
-          %lincol = 'kbgrcmy';
-          %ii = NumBotBnc;
-          %ii = mod( ii, 3 ) + 1;
-          %plot( r, z, lincol( ii ) );
-          if NumTopBnc >= 1 && NumBotBnc >= 1
-             plot( r, z, 'k' )    % hits both boundaries
-          elseif NumBotBnc >= 1
-             plot( r, z, 'b' )	   % hits bottom only
-          elseif NumTopBnc >= 1
-             plot( r, z, 'g' )	   % hits surface only
-          else
-             plot( r, z, 'r' )    % direct path
-          end
-          
-          % update axis limits
-          rmin = min( [ r rmin ] );
-          rmax = max( [ r rmax ] );
-
-          zmin = min( [ z zmin ] );
-          zmax = max( [ z zmax ] );
-          if ( zmin == zmax ) % horizontal ray causes axis scaling problem
-             zmax = zmin + 1;
-          end
-          axis( [ rmin, rmax, zmin, zmax ] )
-          
-          % flush graphics buffer every 10th ray
-          % (does not work for an eigenray run because Nalpha is number of rays
-          % traced, not number of eigenrays)
-          if rem( ibeam, fix( Nalpha / 10 ) ) == 0
-             drawnow
-          end
-       end	% next beam
-    end % next source depth
-
-    fclose( fid );
-
-    drawnow
-    hold off
-    zoom on
-
-    if ( nargout == 1 )
-       varargout{ 1 } = findobj( 'Type', 'Line' );   % return a handle to the lines in the figure
-    end
-
-    % fixed size for publications
-    if ( jkpsflag )
-       set( gca, 'Units', 'centimeters' )
-       set( gca, 'Position', [ 2 2 14.0  7.0 ] )
-       set(gcf, 'PaperPositionMode', 'auto');
-       
-       %set( gcf, 'Units', 'centimeters' )
-       %set( gcf, 'PaperPosition', [ 3 3 19.0 10.0 ] )
-       set( gcf, 'Units', 'centimeters' )
-       set( gcf, 'Position', [ 3 15 19.0 10.0 ] )
-    end
-    """
