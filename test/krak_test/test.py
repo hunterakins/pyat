@@ -34,7 +34,7 @@ pos.Nrd = len(rd)
 
 
 
-bottom_depth = 100
+bottom_depth = 200
 depth = [0, bottom_depth] 
 # Layer 1
 z1		=	depth[0:2]	
@@ -71,7 +71,7 @@ cInt = Empty()
 cInt.High = cb
 cInt.Low = 0 # compute automatically
 RMax = max(X)
-freq = 100
+freq = 400
 write_env('py_env.env', 'KRAKEN', 'Pekeris profile', freq, ssp, bdy, pos, [], cInt, RMax)
   
 

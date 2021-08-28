@@ -265,6 +265,16 @@ class Modes:
         receiver_modes = self.phi[r_inds, :]
         self.receiver_modes = receiver_modes
         return receiver_modes
+
+    def get_source_excitation(self, zs):
+        """
+        For case where there is a track, there may be multiple repeats in zs
+        """
+        tol = 1e-3
+        r_inds = [np.argmin(abs(zs[i] - self.z)) for i in range(len(zs))]
+        strength_modes = self.phi[r_inds, :]
+        self.strength_modes = strength_modes
+        return strength_modes
         
 
     def plot(self):
@@ -334,7 +344,7 @@ class Arrivals:
         vals = [times.real, amps]
         return ymin, ymax, vals
 
-    def plot_ellipse(self, vals=None, ref_amp =None):
+    def plot_ellipse(self, vals=None, ref_amp =None, src_ang=False):
         """
         Produce the travel time ellipse with colorbar for amplitude
         Input - 
@@ -347,7 +357,8 @@ class Arrivals:
         arrival_list = self.arrivals
         amps = np.array([abs(x.amp) for x in arrival_list])
         times = np.array([x.delay.real for x in arrival_list])
-        angles = np.array([x.rec_ang for x in arrival_list])
+        rec_angles = np.array([x.rec_ang for x in arrival_list])
+        src_angles = np.array([x.rec_ang for x in arrival_list])
         """
         Create the time axis
         """
@@ -358,15 +369,20 @@ class Arrivals:
         if type(ref_amp) == type(None):
             amps = amps / np.max(abs(amps))
         else:
-            amps /= ref_amp
+            amps /= abs(ref_amp)
+        print(amps)
         cvals = np.log10(abs(amps))
-        cvals = np.linspace(-5, 0, len(amps))
+        #cvals = np.linspace(-5, 0, len(amps))
         """ Make a nice cmap """ 
         oran = cm.get_cmap('hsv')
         oran = oran(np.linspace(.13, 0, 10))
         mymap = LCM(oran, 'mymap')
         """ Configure the x axis """
         plt.scatter([tmin, tmax], [0,0], s=0)
+        if src_ang == False:
+            angles = rec_angles
+        else:
+            angles = src_angles
         plt.scatter(times, angles, s=25, c=cvals, cmap=mymap)
         plt.colorbar()
         vals = [times, amps]

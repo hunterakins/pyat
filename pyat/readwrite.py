@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.io import loadmat
 import os
+import time
 from struct import unpack
 from .env import Source, Dom, Pos, cInt, Ice, SSPraw, SSP, HS, BotBndry, TopBndry, Bndry, Box, Beam, Modes
 import re
@@ -162,7 +163,6 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
                     ' {:6.2f}'.format(bdry.Top.hs.betaI) + \
                     '  \t ! upper halfspace \r\n')
 
-
     # SSP
     for medium in range(ssp.NMedia):
         f.write('{:5d}'.format(ssp.N[ medium ]) + \
@@ -260,7 +260,6 @@ def write_ssp(sspfile, cw, r_arr):
                 f.write(str(val) + '\t')
             f.write('\r\n')
         return
-    
 
 def write_bathy( btyfile, range_depth_array):
     """
@@ -277,7 +276,7 @@ def write_bathy( btyfile, range_depth_array):
         f.write(str(range_depth_array.shape[0])+'\r\n')
         for row in range(range_depth_array.shape[0]):
             vals = range_depth_array[row,:]
-            f.write('  ' + str(vals[0]) + ' ' + str(vals[1]))
+            f.write('  ' + str(vals[0]) + ' ' + str(vals[1]) + '\n')
     return
 
 def write_bell(f, beam):
@@ -1145,9 +1144,15 @@ def read_modes(**kwargs):
                 rec = iRecProfile + 2 + int(modes[ ii ])
                 f.seek(rec * lrecl)
                 phi = unpack('f'*2*Nmat, f.read(2*Nmat*4)) # Data is read columwise
-                phir = np.array([phi[i] for i in range(0,2*Nmat,2)])
-                phii = np.array([phi[i+1] for i in range(0,2*Nmat,2)])
-                
+                #t0 = time.time()
+                phi = np.array(phi)
+                phir = phi[::2]
+                phii = phi[1::2]
+                #print('aray cast time', time.time()-t0)
+                #t0 = time.time()
+                #phir = np.array([phi[i] for i in range(0,2*Nmat,2)])
+                #phii = np.array([phi[i+1] for i in range(0,2*Nmat,2)])
+                #print('aray list time', time.time()-t0)
                 modes_phi[ :, ii ] = phir + complex(0, 1)*phii;
            
             rec = iRecProfile + 2 + M;
@@ -1254,3 +1259,175 @@ def read_arrivals_asc_alt(fname, narrmx=200):
                         line_index += 1
                     arrival_list.append(loc_arrivals)
     return arrival_list, pos
+
+def plotray(fname):
+    # Plot the RAYfil produced by Bellhop or Bellhop3D
+    #% usage: plotray( rayfil )
+    #% where rayfil is the ray file (extension is optional)
+    #% e.g. plotray( 'foofoo' )
+    #%
+    #% for BELLHOP3D files, rays in (x,y,z) are converted to (r,z) coordinates
+    #%
+    #% MBP July 1999
+
+    #global units jkpsflag
+
+    with open(fname, 'r') as f:
+        lines = f.readlines()
+        TITLE       = lines[0]
+        freq = float(lines[1])
+        print(freq)
+        tmp = lines[2].split(' ')
+        tmp = [x for x in tmp if x != '']
+        Nsx = int(tmp[0])
+        Nsy = int(tmp[1])
+        Nsz = int(tmp[2])
+        print('Nsx, Nsy, Nsz', Nsx, Nsy, Nsz)
+        tmp = lines[3].split(' ')
+        tmp = [x for x in tmp if x != '']
+        Nalpha = int(tmp[0])
+        Nbeta = int(tmp[1])
+        deptht = float(lines[4])
+        depthb = float(lines[5])
+        print('deptht, depthb', deptht, depthb)
+
+
+        fig, axis = plt.subplots(1,1)
+        axis.set_ylim([0, depthb+50])
+        axis.invert_yaxis()
+
+        line_ind = 7
+        print('running loop for plots')
+        for i in range(Nsz):
+            for ibeam in range(Nalpha):
+                if line_ind >= len(lines)-1:
+                    break
+                else:
+                    angle = float(lines[line_ind])
+                    line_ind += 1
+                    tmp = lines[line_ind].split(' ')
+                    tmp = [x for x in tmp if x != '']
+                    nsteps = int(tmp[0])
+                    num_top_bnc= int(tmp[1])
+                    num_bot_bnc= int(tmp[2])
+                    line_ind +=  1
+                    for line_ind in range(line_ind, line_ind + nsteps-1):
+                        tmp = lines[line_ind].split(' ')
+                        tmp = [x for x in tmp if x != '']
+                        x,y = float(tmp[0]), float(tmp[1])
+                        tmp = lines[line_ind+1].split(' ')
+                        tmp = [x for x in tmp if x != '']
+                        x1,y1 = float(tmp[0]), float(tmp[1])
+                        if num_top_bnc == 0 and num_bot_bnc==0: 
+                            axis.plot([x, x1], [y,y1], color='k')
+                        elif num_top_bnc == 1 and num_top_bnc == 0:
+                            axis.plot([x, x1], [y,y1], color='b', alpha=.85)
+                        elif num_top_bnc == 0 and num_top_bnc == 1:
+                            axis.plot([x, x1], [y,y1], color='r', alpha=.85)
+                        else:
+                            axis.plot([x, x1], [y,y1], color='g',alpha=.7)
+                    line_ind += 2
+        print('done')
+                    
+        return fig, axis
+                
+                
+        
+        """
+        FREQ        = fscanf( fid, '%f', 1 );
+        Nsxyz       = fscanf( fid, '%f', 3 );
+        NBeamAngles = fscanf( fid, '%i', 2 );
+
+        DEPTHT      = fscanf( fid, '%f', 1 );
+        DEPTHB      = fscanf( fid, '%f', 1 );
+
+        Type        = fgetl( fid );
+        Type        = fgetl( fid );
+
+
+
+    % this could be changed to a forever loop
+    for isz = 1 : Nsz
+       for ibeam = 1 : Nalpha
+          alpha0    = fscanf( fid, '%f', 1 );
+          nsteps    = fscanf( fid, '%i', 1 );
+
+          NumTopBnc = fscanf( fid, '%i', 1 );
+          NumBotBnc = fscanf( fid, '%i', 1 );
+
+          if isempty( nsteps ); break; end
+          switch Type
+             case 'rz'
+                ray = fscanf( fid, '%f', [2 nsteps] );
+                
+                r = ray( 1, : );
+                z = ray( 2, : );
+             case 'xyz'
+                ray = fscanf( fid, '%f', [3 nsteps] );
+                
+                xs = ray( 1, 1 );
+                ys = ray( 2, 1 );
+                r = sqrt( ( ray( 1, : ) - xs ).^2 + ( ray( 2, : ) - ys ).^2 );
+                z = ray( 3, : );
+          end
+          
+          if ( strcmp( units, 'km' ) )
+             r = r / 1000;   % convert to km
+          end
+          
+          %lincol = 'kbgrcmy';
+          %ii = NumBotBnc;
+          %ii = mod( ii, 3 ) + 1;
+          %plot( r, z, lincol( ii ) );
+          if NumTopBnc >= 1 && NumBotBnc >= 1
+             plot( r, z, 'k' )    % hits both boundaries
+          elseif NumBotBnc >= 1
+             plot( r, z, 'b' )	   % hits bottom only
+          elseif NumTopBnc >= 1
+             plot( r, z, 'g' )	   % hits surface only
+          else
+             plot( r, z, 'r' )    % direct path
+          end
+          
+          % update axis limits
+          rmin = min( [ r rmin ] );
+          rmax = max( [ r rmax ] );
+
+          zmin = min( [ z zmin ] );
+          zmax = max( [ z zmax ] );
+          if ( zmin == zmax ) % horizontal ray causes axis scaling problem
+             zmax = zmin + 1;
+          end
+          axis( [ rmin, rmax, zmin, zmax ] )
+          
+          % flush graphics buffer every 10th ray
+          % (does not work for an eigenray run because Nalpha is number of rays
+          % traced, not number of eigenrays)
+          if rem( ibeam, fix( Nalpha / 10 ) ) == 0
+             drawnow
+          end
+       end	% next beam
+    end % next source depth
+
+    fclose( fid );
+
+    drawnow
+    hold off
+    zoom on
+
+    if ( nargout == 1 )
+       varargout{ 1 } = findobj( 'Type', 'Line' );   % return a handle to the lines in the figure
+    end
+
+    % fixed size for publications
+    if ( jkpsflag )
+       set( gca, 'Units', 'centimeters' )
+       set( gca, 'Position', [ 2 2 14.0  7.0 ] )
+       set(gcf, 'PaperPositionMode', 'auto');
+       
+       %set( gcf, 'Units', 'centimeters' )
+       %set( gcf, 'PaperPosition', [ 3 3 19.0 10.0 ] )
+       set( gcf, 'Units', 'centimeters' )
+       set( gcf, 'Position', [ 3 15 19.0 10.0 ] )
+    end
+    """
