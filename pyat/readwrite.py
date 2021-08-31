@@ -1321,10 +1321,10 @@ def plotray(fname):
 
                     if num_top_bnc == 0 and num_bot_bnc==0: 
                         axis.plot(x,y, color='k')
-                    elif num_top_bnc == 1 and num_top_bnc == 0:
-                        axis.plot(x,y, color='b', alpha=.85)
-                    elif num_top_bnc == 0 and num_top_bnc == 1:
+                    elif num_top_bnc == 1 and num_bot_bnc == 0:
                         axis.plot(x,y, color='r', alpha=.85)
+                    elif num_top_bnc == 0 and num_bot_bnc == 1:
+                        axis.plot(x,y, color='b', alpha=.85)
                     else:
                         axis.plot(x,y, color='g',alpha=.7)
                     line_ind += 1
