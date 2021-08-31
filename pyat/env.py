@@ -339,7 +339,7 @@ class Arrivals:
             fig, ax = plt.subplots(2,1) 
         ax.scatter(t.real, zeros, s=6)
         ax.stem(times.real, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
-        ax.scatter(times.real, amps,s=36,c='r')
+        ax.scatter(times.real, amps,s=16,c='k')
         scale = 1.5*np.max(abs(amps)) # set yaxis scale
         ymin = - scale
         ymax = scale
@@ -372,13 +372,10 @@ class Arrivals:
             amps = amps / np.max(abs(amps))
         else:
             amps /= abs(ref_amp)
-        print(amps)
-        cvals = np.log10(abs(amps))
+        cvals = 10*np.log10(abs(amps))
         #cvals = np.linspace(-5, 0, len(amps))
         """ Make a nice cmap """ 
-        oran = cm.get_cmap('hsv')
-        oran = oran(np.linspace(.13, 0, 10))
-        mymap = LCM(oran, 'mymap')
+        cmap = cm.get_cmap('Spectral')
         """ Configure the x axis """
 
         if type(ax) == type(None):
@@ -388,7 +385,10 @@ class Arrivals:
             angles = rec_angles
         else:
             angles = src_angles
-        ax.scatter(times, angles, s=25, c=cvals, cmap=mymap)
+        max_db_down = 10
+        cvals_normed = abs(cvals) / max_db_down
+        strong_inds = cvals > -max_db_down
+        ax.scatter(times[strong_inds], angles[strong_inds], s=25, c=cmap(cvals_normed[strong_inds]))
         vals = [times, amps]
         ymin, ymax = -1.5*np.max(abs(angles)), 1.5*np.max(abs(angles))
         return ymin, ymax, vals
