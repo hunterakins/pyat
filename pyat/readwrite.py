@@ -3,7 +3,7 @@ from scipy.io import loadmat
 import os
 import time
 from struct import unpack
-from .env import Source, Dom, Pos, cInt, Ice, SSPraw, SSP, HS, BotBndry, TopBndry, Bndry, Box, Beam, Modes
+from .env import Source, Dom, Pos, cInt, Ice, SSPraw, SSP, HS, BotBndry, TopBndry, Bndry, Box, Beam, Modes, Eigenray
 import re
 from matplotlib import pyplot as plt
 
@@ -1276,20 +1276,17 @@ def plotray(fname):
         lines = f.readlines()
         TITLE       = lines[0]
         freq = float(lines[1])
-        print(freq)
         tmp = lines[2].split(' ')
         tmp = [x for x in tmp if x != '']
         Nsx = int(tmp[0])
         Nsy = int(tmp[1])
         Nsz = int(tmp[2])
-        print('Nsx, Nsy, Nsz', Nsx, Nsy, Nsz)
         tmp = lines[3].split(' ')
         tmp = [x for x in tmp if x != '']
         Nalpha = int(tmp[0])
         Nbeta = int(tmp[1])
         deptht = float(lines[4])
         depthb = float(lines[5])
-        print('deptht, depthb', deptht, depthb)
 
 
         fig, axis = plt.subplots(1,1)
@@ -1297,7 +1294,6 @@ def plotray(fname):
         axis.invert_yaxis()
 
         line_ind = 7
-        print('running loop for plots')
         for i in range(Nsz):
             for ibeam in range(Nalpha):
                 if line_ind >= len(lines)-1:
@@ -1328,9 +1324,57 @@ def plotray(fname):
                     else:
                         axis.plot(x,y, color='g',alpha=.7)
                     line_ind += 1
-        print('done')
                     
         return fig, axis
+
+def get_rays(fname):
+    with open(fname, 'r') as f:
+        lines = f.readlines()
+        TITLE       = lines[0]
+        freq = float(lines[1])
+        tmp = lines[2].split(' ')
+        tmp = [x for x in tmp if x != '']
+        Nsx = int(tmp[0])
+        Nsy = int(tmp[1])
+        Nsz = int(tmp[2])
+        tmp = lines[3].split(' ')
+        tmp = [x for x in tmp if x != '']
+        Nalpha = int(tmp[0])
+        Nbeta = int(tmp[1])
+        deptht = float(lines[4])
+        depthb = float(lines[5])
+
+
+
+        line_ind = 7
+        ray_collections = []
+        for i in range(Nsz):
+            source_collection=[]
+            for ibeam in range(Nalpha):
+                if line_ind >= len(lines)-1:
+                    break
+                else:
+                    angle = float(lines[line_ind])
+                    line_ind += 1
+                    tmp = lines[line_ind].split(' ')
+                    tmp = [x for x in tmp if x != '']
+                    nsteps = int(tmp[0])
+                    num_top_bnc= int(tmp[1])
+                    num_bot_bnc= int(tmp[2])
+                    line_ind +=  1
+                    xy = np.zeros((2,nsteps))
+                    counter = 0
+                    for line_ind in range(line_ind, line_ind + nsteps):
+                        tmp = lines[line_ind].split(' ')
+                        tmp = [x for x in tmp if x != '']
+                        xy[0,counter],xy[1,counter] = float(tmp[0]), float(tmp[1])
+                        counter +=1
+                    ray = Eigenray(angle, num_top_bnc, num_bot_bnc, xy)
+                    source_collection.append(ray)
+                    line_ind += 1
+            ray_collections.append(source_collection)
+                    
+        return ray_collections
                 
                 
         

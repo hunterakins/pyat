@@ -401,5 +401,23 @@ class KernInput:
         self.env = env
         self.Pos = self.Field_r.Pos
         
+
+class Eigenray:
+    def __init__(self, launch_ang, num_top_bnc, num_bot_bnc, xy_arr):
+        """
+        launch_ang
+            launch angl in degrees
+        num_top_bnc
+            integer
+        num_bot_bnc
+            integer
+        xy_arr - np array
+            2 by num steps, first is x position, second is y
+            (so plt.plot(xy_arr[0,:], xy_arr[1,:]) will plot the ray)
+        """
+        self.src_ang = launch_ang
+        self.num_top_bnc = num_top_bnc
+        self.num_bot_bnc = num_bot_bnc
+        self.xy = xy_arr
     
 
