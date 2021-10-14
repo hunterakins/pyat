@@ -272,7 +272,7 @@ def write_bathy( btyfile, range_depth_array):
     if btyfile[-3:] != 'bty':
         btyfile += '.bty'
     with open(btyfile, 'w') as f:
-        f.write('L\r\n') 
+        f.write('CS\r\n') 
         f.write(str(range_depth_array.shape[0])+'\r\n')
         for row in range(range_depth_array.shape[0]):
             vals = range_depth_array[row,:]
@@ -450,6 +450,56 @@ def read_shd_bin(*varargin):
                     
     f.close()
     return [ title, PlotType, freqVec, atten, pos, pressure ] 
+
+def read_ram_bin(fname):
+    """
+    Red the .out file from rammpl
+    
+    function [p,f,z,r] = readram(ram_output_file)
+     [p,f,z,r] = readram(ram_output_file)
+    
+      MATLAB function that reads in RAM's binary output file and saves
+    the pressure field in MATLAB binary format.  NOTE: This function
+     is only valid when the output flags on line 7 of the RAM input file
+     read "1 1 0 0 0"; it is **not** robust to other output flags.
+    
+       p = matrix of complex pressures
+       f = source frequency (in Hz)
+       z = vector of depths in RAM grid (in m)
+       r = vector of ranges in RAM grid (in m)
+    
+     K. H. Kim
+     1 February 2005
+    """
+    with open (fname, 'rb') as f:
+        nz = unpack('I', f.read(4))[0]
+        nr = unpack('I', f.read(4))[0]
+        print('nr, nz', nr, nz)
+        freq = unpack('d', f.read(8))[0]
+        recl = 8 * 2 * nz
+
+        f.seek(recl-4-4-8,1)
+
+        dz = unpack('d', f.read(8))[0]
+        zmax = unpack('d', f.read(8))[0]
+        dr = unpack('d', f.read(8))[0]
+        rmax = unpack('d', f.read(8))[0]
+
+        print('dr, dz, rmax, zmax', dr, dz, rmax, zmax)
+        # Skip to first record of interest
+        f.seek(recl-8-8-8-8,1)
+        nvals = int(nz*nr)
+        p = unpack(str(2*nvals) + 'd', f.read())
+    p = np.array(p)
+    cp = np.zeros((nvals),dtype=np.complex128)
+    cp += p[::2]
+    cp += complex(0,1)*p[1::2]
+    cp = cp.reshape(nr, nz)
+    cp = cp.T
+    z = np.arange(dz, zmax+dz, dz)
+    r = np.arange(dr, rmax+dr, dr)
+
+    return cp, f, z,r
 
 def read_shd (*varargin ):
     '''
@@ -1261,6 +1311,10 @@ def read_arrivals_asc_alt(fname, narrmx=200):
     return arrival_list, pos
 
 def plotray(fname):
+    """
+    Translation of plotray to Python
+    Hunter Akins 2021
+    """
     # Plot the RAYfil produced by Bellhop or Bellhop3D
     #% usage: plotray( rayfil )
     #% where rayfil is the ray file (extension is optional)
@@ -1326,6 +1380,8 @@ def plotray(fname):
                     line_ind += 1
                     
         return fig, axis
+
+        
 
 def get_rays(fname):
     with open(fname, 'r') as f:
