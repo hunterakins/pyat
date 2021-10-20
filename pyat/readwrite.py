@@ -54,8 +54,22 @@ def write_fieldflp(flpfil, Option, Pos, **kwargs):
         f.write('/ ! Title \r\n' )
         f.write('\'' + '{:4}'.format(Option) + ' \'' + ' ! Option \r\n')
         f.write('999999   ! Mlimit (number of modes to include) \r\n' )
-        f.write('1   ! NProf \r\n' )
-        f.write('0.0 /  ! rProf (km) \r\n' )
+        if 'NProf' in kwargs.keys():
+            Nprof = kwargs['NProf']
+            f.write(str(Nprof)+'   ! NProf' )
+            rProf = kwargs['rProf']
+            if ( len( rProf ) > 2) and equally_spaced( rProf ):
+                f.write('\r\n    ' + '{:6f}'.format(rProf[0]))
+                f.write('\r\n    ' + '{:6f}'.format(rProf[-1]))
+            elif len(rProf) == 1:
+                f.write('\r\n    ' + '{:6f}'.format(rProf[0]) + '  ')
+            else:
+                for i in range(len(rProf)):
+                    f.write('\r\n    ' + '{:6f}'.format(rProf[i]) + '  ')
+            f.write(' / ! rProf (km) \r\n')
+        else:
+            f.write('1   ! NProf \r\n' )
+            f.write('0.0 /  ! rProf (km) \r\n' )
 
         # receiver ranges
         f.write('{:5d}'.format(len(Pos.r.range)) + ' \t \t \t \t ! NRR')
@@ -70,7 +84,7 @@ def write_fieldflp(flpfil, Option, Pos, **kwargs):
                 f.write('\r\n    ' + '{:6f}'.format(Pos.r.range[i]) + '  ')
             
 
-        f.write( '/ \t ! RR(1)  ... (km) \r\n' )
+        f.write( '  / \t ! R(1)  ... (km) \r\n' )
 
         # source depths
 
@@ -125,10 +139,11 @@ def fileparts(fname):
     else:
         ext_ind = [i for i in range(len(fname)) if fname[i]=='.']
         if len(ext_ind) > 1:
-            raise ValueError("something fishy about a filename with two periods")
-        else:
-            ext_ind = ext_ind[0]
+            print('Warning: lots of periods...')
+            #raise ValueError("something fishy about a filename with two periods")
+        ext_ind = ext_ind[-1]
         ext = fname[ext_ind:]
+        print('ext', ext)
         fname = fname[:ext_ind]
     return fpath, fname, ext
 
@@ -1381,7 +1396,6 @@ def plotray(fname):
                     
         return fig, axis
 
-        
 
 def get_rays(fname):
     with open(fname, 'r') as f:
