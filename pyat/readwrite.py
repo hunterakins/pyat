@@ -312,9 +312,9 @@ def write_bell(f, beam):
     f.write('{:f}'.format(beam.deltas)+' {:f}'.format(beam.box.z)+' {:f}'.format(beam.box.r)+'\t ! deltas (m) box.z (m) box.r (km) \r\n');
 
 # Cerveny-style Gaussian beams
-    if ( len( beam.RunType ) > 1) and ( 'GBS' not in Beam.RunType[1:1] ) :
-        f.write('\''+beam.Type[0:1]+'\''+' {:f}'.format(Beam.epmult)+' {:f}'.format(Beam.rLoop )+' \t \t ! ''Min/Fill/Cer, Sin/Doub/Zero'' Epsmult RLoop (km) \r\n')
-        f.write('{:d}'.format(beam.Nimage)+' {:d}'.format(Beam.Ibwin)+'  \t \t \t \t ! Nimage Ibwin \r\n')
+    if ( len( beam.RunType ) > 1) and ((beam.RunType[1] != 'G') and (beam.RunType[1] != 'B') and (beam.RunType[1] != 'S')) :
+        f.write('\''+beam.Type[0:1]+'\''+' {:f}'.format(beam.epmult)+' {:f}'.format(beam.rLoop )+' \t \t ! ''Min/Fill/Cer, Sin/Doub/Zero'' Epsmult RLoop (km) \r\n')
+        f.write('{:d}'.format(beam.Nimage)+' {:d}'.format(beam.Ibwin)+'  \t \t \t \t ! Nimage Ibwin \r\n')
 
 def read_shd_bin(*varargin):
     s = Source(0)
@@ -401,7 +401,7 @@ def read_shd_bin(*varargin):
     pos.r.range = unpack(str(Nrr) + 'f',f.read(Nrr*4))
     # pos.r.range = pos.r.range';   # make it a row vector
     pos.r.range = np.array(pos.r.range)
-
+    pos.r.range = np.round(pos.r.range, 3)
     ##
     # Each record holds data from one source depth/receiver depth pair
 
