@@ -4,5 +4,3 @@ pyat/mode_grad.py
 **/*.env
 **/*.prt
 **/*.swp
-.DS_Store
-
