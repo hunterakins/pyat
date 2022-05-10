@@ -143,7 +143,7 @@ def fileparts(fname):
             #raise ValueError("something fishy about a filename with two periods")
         ext_ind = ext_ind[-1]
         ext = fname[ext_ind:]
-        print('ext', ext)
+        #print('ext', ext)
         fname = fname[:ext_ind]
     return fpath, fname, ext
 
@@ -151,7 +151,40 @@ class Empty():
     def __init__(self):
         return
 
-def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, *varargin ):
+def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, NMESH=None,*varargin ):
+    '''
+    write_env - writes an environment file given the environment parameters
+
+    Parameters
+    ----------
+    envfil : str
+        name of the environment file to save, should not include extensions
+    model : str
+        type of model to run. example ['kraken']
+    TitleEnv : str
+        title of environment file (printed at top of .env file)
+    freq : float
+        frequency of environment
+    ssp : pyat.pyat.env.SSP
+        sound speed profile object
+    bdry : pyat.pyat.env.Bndry
+        boundary condition (top and bottom) object
+    pos : pyat.pyat.env.Pos
+        Position object? contains information about source and reciever depths and ranges
+    beam : (unknown)
+        unknown, but passing [] works
+    cint : an empty class?
+        unkown, but passing Empty where Empty is defined by (below) works
+        class Empty:
+            def __init__(self):
+                return
+    RMax : int
+        maximum range
+    NMESH : int
+        number of mesh points used for sound speed profile interpolation. Default is None, which
+        which uses the number of defined points in the sound speed profile object
+    
+    '''
     if (envfil[-4:] != '.env' ):
         envfil = envfil + '.env' # append extension
 
@@ -180,7 +213,11 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
 
     # SSP
     for medium in range(ssp.NMedia):
-        f.write('{:5d}'.format(ssp.N[ medium ]) + \
+
+        # get NMESH
+        if NMESH is None:
+            NMESH = ssp.N[ medium ]
+        f.write('{:5d}'.format(NMESH) + \
                 ' {:4.2f}'.format(ssp.sigma[ medium ]) + \
                 ' {:6.2f}'.format(ssp.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
         for ii in range(len( ssp.raw[ medium].z )):
