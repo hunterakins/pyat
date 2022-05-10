@@ -151,6 +151,30 @@ class Empty():
     def __init__(self):
         return
 
+def write_sbp(fname, pattern,num_dec_pts=2):
+    """ 
+    From BELLHOP docs, 
+    ``The source beam pattern file has the format
+    NSBPPts
+    angle1 power1
+    ....
+    with angle following the BELLHOP convention, i.e. declination angle in degrees (So that 90 degrees points to the bottom. The power is in dB. 
+    ''
+    Input-
+    fname - string
+        basic file name to write. 
+        ends with .sbp, if not it's appended
+    pattern - np 2d array of floats
+        first column is angles IN DEGREES
+        second column is power IN DB
+    """
+    if fname[-4:] != '.sbp':
+        fname += '.sbp'
+    num_angles = pattern.shape[0]
+    np.savetxt(fname, pattern, fmt='%.'+str(num_dec_pts) + 'f', delimiter='    ', header=str(num_angles) + ' # Num pts',comments='')
+    return
+    
+
 def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, *varargin ):
     if (envfil[-4:] != '.env' ):
         envfil = envfil + '.env' # append extension
