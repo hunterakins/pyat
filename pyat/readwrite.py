@@ -6,6 +6,7 @@ from struct import unpack
 from .env import Source, Dom, Pos, cInt, Ice, SSPraw, SSP, HS, BotBndry, TopBndry, Bndry, Box, Beam, Modes, Eigenray
 import re
 from matplotlib import pyplot as plt
+from math import floor
 
 
 """ 
@@ -411,15 +412,12 @@ def read_shd_bin(*varargin):
 
     ##
     f = open( filename, 'rb' )
-    if ( f.fileno == -1 ):
-        error( 'read_shd_bin.m: No shade file with that name exists' )
 
     recl     = unpack('<I', f.read(4))[0];     #record length in bytes will be 4*recl
     title    = unpack('80s', f.read(80))
 
     f.seek(4 * recl); #reposition to end of first record
     PlotType = unpack('10s', f.read(10))
-    PlotType = PlotType
 
     f.seek(2 * 4 * recl); #reposition to end of second record
     Nfreq  = unpack('<I', f.read(4))[0]
@@ -444,11 +442,11 @@ def read_shd_bin(*varargin):
     else:   # compressed format for TL from FIELD3D
         f.seek(5 * 4 * recl, -1 ); #reposition to end of record 5
         pos.s.x     = f.read(2,    'float32' )
-        pos.s.x     = linspace( pos.s.x( 1 ), pos.s.x( end ), Nsx )
+        pos.s.x     = np.linspace( pos.s.x[0], pos.s.x[-1], Nsx )
         
         f.seek(6 * 4 * recl, -1 ); #reposition to end of record 6
         pos.s.y     = f.read(2,    'float32' )
-        pos.s.y     = linspace( pos.s.y( 1 ), pos.s.y( end ), Nsy )
+        pos.s.y     = np.linspace( pos.s.y[0], pos.s.y[-1], Nsy )
 
     f.seek(7 * 4 * recl); #reposition to end of record 7
     pos.s.depth = unpack(str(Nsd)+'f', f.read(Nsd*4))
@@ -683,7 +681,7 @@ def read_shd (*varargin ):
         pos.r.range = np.array(pos.r.range.T);   # make it a column vector to match read_shd_bin
 
     elif FileType ==  'RAM':
-        [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_ram_tlgrid
+        [ PlotTitle, PlotType, freqVec, atten, pos, pressure ] = read_ram_tlgrid( filename )
     else:
         raise ValueError( 'Unrecognized file extension' )
 
@@ -1506,6 +1504,10 @@ def get_rays(fname):
             ray_collections.append(source_collection)
                     
         return ray_collections
-                
-                
-        
+
+
+def read_shd_asc(filename):
+    raise NotImplementedError
+
+def read_ram_tlgrid(filename):
+    raise NotImplementedError

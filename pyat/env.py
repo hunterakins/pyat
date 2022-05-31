@@ -385,7 +385,7 @@ class KernInput:
     def __init__(self, Field_r, Field_s, env):
         self.gr = Field_r.greens_mat
         self.num_rcvrs = len(self.gr)
-        self.gs = np.flip(Fields.greens_mat, axis=1) # move source off axis
+        self.gs = np.flip(Field_s.greens_mat, axis=1) # move source off axis
         self.env = env
         self.Pos = self.Field_r.Pos
         
