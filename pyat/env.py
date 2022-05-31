@@ -151,18 +151,6 @@ class cInt:
         self.Low = low
         self.High = high
 
-class Env:
-    def __init__(self, SSP, bndy,dens_array=None):
-        self.SSP_array = SSP_array
-        self.SSP_depths = SSP.depth
-        self.SSP_vals = SSP_array[:,1]
-        self.sspf = interp1d(self.SSP_depths, self.SSP)
-        self.dens_array = dens_array
-        if self.dens_array != None:
-            self.rho_depths = self.dens_array[:,0]
-            self.rho_vals = self.dens_array[:,1]
-            self.rho_f = interp1d(self.rho_depths, self.rho_vals)
-
 class Field:
     def __init__(self, **kwargs):
         self.pos = kwargs['pos']
