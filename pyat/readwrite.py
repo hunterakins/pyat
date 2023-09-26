@@ -1455,7 +1455,6 @@ def plotray(fname):
                     
         return fig, axis
 
-
 def get_rays(fname):
     with open(fname, 'r') as f:
         lines = f.readlines()
@@ -1504,7 +1503,6 @@ def get_rays(fname):
             ray_collections.append(source_collection)
                     
         return ray_collections
-
 
 def read_shd_asc(filename):
     raise NotImplementedError

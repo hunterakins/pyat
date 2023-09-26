@@ -389,7 +389,6 @@ class KernInput:
         self.env = env
         self.Pos = self.Field_r.Pos
         
-
 class Eigenray:
     def __init__(self, launch_ang, num_top_bnc, num_bot_bnc, xy_arr):
         """
