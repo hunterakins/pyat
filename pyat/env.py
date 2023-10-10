@@ -324,7 +324,7 @@ class Arrivals:
             t = np.linspace(.9*np.min(times), 1.1*np.max(times), 100)
         zeros = np.zeros(t.size)
         if type(ax) == type(None):
-            fig, ax = plt.subplots(2,1) 
+            fig, ax = plt.subplots(1,1) 
         ax.scatter(t.real, zeros, s=6)
         ax.stem(times.real, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
         ax.scatter(times.real, amps,s=16,c='k')
@@ -367,7 +367,7 @@ class Arrivals:
         """ Configure the x axis """
 
         if type(ax) == type(None):
-            fig, ax = plt.subplots(2,1) 
+            fig, ax = plt.subplots() 
         ax.scatter([tmin, tmax], [0,0], s=0)
         if src_ang == False:
             angles = rec_angles
@@ -388,7 +388,6 @@ class KernInput:
         self.gs = np.flip(Field_s.greens_mat, axis=1) # move source off axis
         self.env = env
         self.Pos = self.Field_r.Pos
-        
 
 class Eigenray:
     def __init__(self, launch_ang, num_top_bnc, num_bot_bnc, xy_arr):
@@ -407,5 +406,32 @@ class Eigenray:
         self.num_top_bnc = num_top_bnc
         self.num_bot_bnc = num_bot_bnc
         self.xy = xy_arr
-    
+
+def plot_ssp(ssp):
+    """
+    Plot SSP object
+    Make a plot for comprresive speed, shear speed, density, compressional atten.
+    and shear atten.
+    """
+    N = ssp.NMedia
+    fig, axes = plt.subplots(2,3, sharey=True)
+    layer_ssps = ssp.raw # list of raw ssp profile
+    for layer_ind in range(N):
+        layer_ssp_raw = layer_ssps[layer_ind]
+        _ = layer_ssp_raw # just to abbreviate the syntax
+        y_list = [_.alphaR, _.betaR, _.rho, _.alphaI, _.betaI]
+        z = layer_ssp_raw.z
+        for k in range(5):
+            ax = axes.ravel()[k]
+            ax.plot(y_list[k], z)
+    labels = ['c', 'cs', '$\\rho$', '$\\alpha$', '$\\beta$']
+    for k in range(5):
+        ax = axes.ravel()[k]
+        ax.invert_yaxis()
+        ax.set_xlabel(labels[k])
+        ax.set_ylabel('Depth (m)')
+
+    fig.subplots_adjust(wspace=.2, hspace=.25)
+    return fig, axes
+        
 
