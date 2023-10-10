@@ -175,8 +175,7 @@ def write_sbp(fname, pattern,num_dec_pts=2):
     np.savetxt(fname, pattern, fmt='%.'+str(num_dec_pts) + 'f', delimiter='    ', header=str(num_angles) + ' # Num pts',comments='')
     return
     
-
-def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, NMESH=None,*varargin ):
+def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, NMESH=None,append=False):
     '''
     write_env - writes an environment file given the environment parameters
 
@@ -205,7 +204,7 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
                 return
     RMax : int
         maximum range
-    NMESH : int
+    NMESH : list of ints or None
         number of mesh points used for sound speed profile interpolation. Default is None, which
         which uses the number of defined points in the sound speed profile object
     
@@ -213,7 +212,7 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
     if (envfil[-4:] != '.env' ):
         envfil = envfil + '.env' # append extension
 
-    if ( len( varargin ) == 0 ):
+    if append==False:
         f = open( envfil, 'w' ) # create new env file
     else:
         f = open( envfil, 'a' )   # append to existing envfil
@@ -241,7 +240,10 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
 
         # get NMESH
         if NMESH is None:
-            NMESH = ssp.N[ medium ]
+            n_mesh = 0 # this will allow KRAKEN to automatically choose the mesh size
+        else:
+            n_mesh = NMESH[medium]
+
         f.write('{:5d}'.format(NMESH) + \
                 ' {:4.2f}'.format(ssp.sigma[ medium ]) + \
                 ' {:6.2f}'.format(ssp.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
@@ -890,7 +892,7 @@ def read_env_core( envfil ):
             else:
                 Loc[ medium ] = Loc[ medium - 1 ] + ssp_Npts[ medium - 1 ]
                
-            # next line is the num points in ssp, sigma, depth
+            # next line is the num points in the mesh, sigma, depth of layer
             tmp = lines[line_ind]
             line_ind += 1
             ssp_N[medium], ssp_sigma[medium], ssp_depth[medium+1] = int(float(tmp.split()[0])), float(tmp.split()[1]), float(tmp.split()[2])
@@ -948,7 +950,7 @@ def read_env_core( envfil ):
                 if ( betaR > 0.0 ):
                     C = betaR  # shear?
                 deltaz = 0.05 * C / freq     # default sampling: 20 points per wavelength
-                ssp_N[ medium ] = round( ( ssp_depth[ medium + 1 ] - ssp_depth[ medium ] ) / deltaz )
+                ssp_N[ medium ] = int(round( ( ssp_depth[ medium + 1 ] - ssp_depth[ medium ] ) / deltaz ))
                 ssp_N[ medium ] = np.max( [ssp_N[ medium ], 10] )     # require a minimum of 10 points
            
             # keep track of first and last acoustic medium
@@ -1443,18 +1445,18 @@ def plotray(fname):
                         x[counter],y[counter] = float(tmp[0]), float(tmp[1])
                         counter +=1
 
+                    num_bnc = num_top_bnc+ num_bot_bnc
                     if num_top_bnc == 0 and num_bot_bnc==0: 
                         axis.plot(x,y, color='k')
-                    elif num_top_bnc == 1 and num_bot_bnc == 0:
+                    elif num_bnc > 1:
                         axis.plot(x,y, color='r', alpha=.85)
-                    elif num_top_bnc == 0 and num_bot_bnc == 1:
+                    elif num_top_bnc == 1:
                         axis.plot(x,y, color='b', alpha=.85)
-                    else:
-                        axis.plot(x,y, color='g',alpha=.7)
+                    elif num_bot_bnc == 1:
+                        axis.plot(x,y, color='tab:brown', alpha=.85)
                     line_ind += 1
                     
         return fig, axis
-
 
 def get_rays(fname):
     with open(fname, 'r') as f:
@@ -1504,7 +1506,6 @@ def get_rays(fname):
             ray_collections.append(source_collection)
                     
         return ray_collections
-
 
 def read_shd_asc(filename):
     raise NotImplementedError
