@@ -244,7 +244,7 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
         else:
             n_mesh = NMESH[medium]
 
-        f.write('{:5d}'.format(NMESH) + \
+        f.write('{:5d}'.format(nmesh) + \
                 ' {:4.2f}'.format(ssp.sigma[ medium ]) + \
                 ' {:6.2f}'.format(ssp.depth[ medium+1 ]) + ' \t ! N sigma depth \r\n') 
         for ii in range(len( ssp.raw[ medium].z )):
