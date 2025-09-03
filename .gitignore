@@ -4,3 +4,4 @@ pyat/mode_grad.py
 **/*.env
 **/*.prt
 **/*.swp
+_version.py
