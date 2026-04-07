@@ -402,15 +402,15 @@ def read_shd_bin(*varargin):
     if len(varargin) == 2:
         freq = varargin[1]
     else:
-        freq = np.NaN
+        freq = np.nan
 
     # optional source (x,y) coordinate
     if len(varargin) >= 3:
        xs = varargin[1]
        ys = varargin[2]
     else:
-       xs = np.NaN
-       ys = np.NaN
+       xs = np.nan
+       ys = np.nan
 
     ##
     f = open( filename, 'rb' )
@@ -612,15 +612,15 @@ def read_shd (*varargin ):
     if len(varargin) == 2:
         freq = varargin[1]
     else:
-        freq = np.NaN
+        freq = np.nan
 
     # optional source (x,y) coordinate
     if len(varargin) >= 3:
        xs = varargin[1]
        ys = varargin[2]
     else:
-       xs = np.NaN
-       ys = np.NaN
+       xs = np.nan
+       ys = np.nan
 
     PlotType = [];  # in case this was not set
 
